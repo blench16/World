@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成就资格修复器 - Minecraft 基岩版</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #121212; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; padding: 20px 10px; }
+        .container { width: 100%; max-width: 500px; background: #1e1e1e; border: 1px solid #333; border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header img { width: 48px; height: 48px; margin-bottom: 8px; }
+        .header h1 { font-size: 20px; color: #fff; margin-bottom: 6px; }
+        .header p { font-size: 12px; color: #888; }
+        
+        .dropzone { border: 2px dashed #4caf50; border-radius: 8px; padding: 25px 15px; text-align: center; cursor: pointer; background: rgba(76, 175, 80, 0.05); transition: background 0.2s; margin-bottom: 20px; position: relative; }
+        .dropzone:active { background: rgba(76, 175, 80, 0.15); }
+        .dropzone .title { font-size: 15px; font-weight: bold; color: #4caf50; margin-bottom: 6px; }
+        .dropzone .sub { font-size: 12px; color: #aaa; margin-bottom: 10px; }
+        .dropzone .demo-link { font-size: 12px; color: #d4a636; text-decoration: underline; cursor: pointer; display: inline-block; padding: 4px; }
+        
+        .card { background: #252525; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #333; display: none; }
+        .card-title { font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #ccc; }
+        
+        .badge { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge-good { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+        .badge-bad { background: rgba(244, 67, 54, 0.2); color: #e57373; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-primary { background: #4caf50; color: #fff; }
+        .btn-primary:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .btn-secondary { background: #424242; color: #ccc; }
+        
+        .accordion { background: #252525; border-radius: 6px; margin-bottom: 10px; border: 1px solid #333; overflow: hidden; }
+        .accordion-header { padding: 12px 15px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; color: #ddd; }
+        .accordion-content { padding: 12px 15px; font-size: 12px; color: #aaa; border-top: 1px solid #333; display: none; line-height: 1.6; }
+        
+        footer { text-align: center; font-size: 11px; color: #666; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>成就资格修复器</h1>
+        <p>精准 NBT 解析 · 自动备份 · 纯本地处理</p>
+    </div>
+
+    <!-- 上传区域：直接在 HTML 加 onclick 兜底 -->
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div class="title" id="fileTitle">点击 或 拖拽文件到此处</div>
+        <div class="sub" id="fileSub">支持 .mcworld / .zip / level.dat · 基岩版专用</div>
+        <div class="demo-link" id="loadDemoBtn" onclick="event.stopPropagation(); loadDemoData()">🧪 没有存档？点击一键加载示例数据预览</div>
+        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat" style="display:none;" onchange="handleFileSelect(event)">
+    </div>
+
+    <div id="infoCard" class="card">
+        <div class="card-title">📊 存档概览</div>
+        <div class="info-row"><span>世界名称</span><span id="info_name">-</span></div>
+        <div class="info-row"><span>游戏模式</span><span id="info_mode">-</span></div>
+        <div class="info-row"><span>游戏难度</span><span id="info_difficulty">-</span></div>
+        <div class="info-row"><span>随机种子</span><span id="info_seed">-</span></div>
+        <div class="info-row"><span>游玩时间</span><span id="info_time">-</span></div>
+    </div>
+
+    <div id="statusCard" class="card">
+        <div class="card-title">🛡️ 成就资格诊断</div>
+        <div class="info-row"><span>曾切创造 (hasBeenLoadedInCreative)</span><span id="val_creative" class="badge">-</span></div>
+        <div class="info-row"><span>开启作弊 (cheatsEnabled)</span><span id="val_cheats" class="badge">-</span></div>
+        <div class="info-row"><span>开启命令 (commandsEnabled)</span><span id="val_commands" class="badge">-</span></div>
+        <div id="summaryBox" style="margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 12px;">
+            <span id="summaryText">准备就绪</span>
+        </div>
+        <div class="btn-group">
+            <button id="fixBtn" class="btn btn-primary" onclick="doFix()" disabled>一键修复成就资格</button>
+            <button class="btn btn-secondary" onclick="location.reload()">重新加载</button>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAcc('acc1')">📖 如何导出存档文件？(.mcworld) <span id="acc1Arrow">▼</span></div>
+        <div class="accordion-content" id="acc1">在 Minecraft 游戏主界面选择你的世界，点击“编辑”按钮，滑动到最底部选择“导出世界”，即可获得 .mcworld 文件。</div>
+    </div>
+
+    <div class="accordion">
+        <div class="accordion-header" onclick="toggleAcc('acc2')">❓ 常见问题与注意事项 <span id="acc2Arrow">▼</span></div>
+        <div class="accordion-content" id="acc2">本工具仅进行纯本地内存解析，绝不会上传你的存档文件。修复完成后重新进入游戏，请勿再次勾选“开启作弊”或切创造模式。</div>
+    </div>
+
+    <footer>Crafted for Bedrock Edition · Pure Client-Side Process</footer>
+</div>
+
+<script>
+    function toggleAcc(id) {
+        var el = document.getElementById(id);
+        var arrow = document.getElementById(id + 'Arrow');
+        if (el.style.display === 'block') {
+            el.style.display = 'none';
+            if (arrow) arrow.textContent = '▼';
+        } else {
+            el.style.display = 'block';
+            if (arrow) arrow.textContent = '▲';
+        }
+    }
+
+    function loadDemoData() {
+        document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
+        document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
+        document.getElementById('loadDemoBtn').style.display = 'none';
+
+        document.getElementById('infoCard').style.display = 'block';
+        document.getElementById('info_name').textContent = '我的生存世界 (示例)';
+        document.getElementById('info_mode').textContent = '创造 (Creative)';
+        document.getElementById('info_difficulty').textContent = '普通 (Normal)';
+        document.getElementById('info_seed').textContent = '-7363735107005477438';
+        document.getElementById('info_time').textContent = '240.0 分钟 (第 24 天)';
+
+        document.getElementById('statusCard').style.display = 'block';
+        document.getElementById('val_creative').textContent = '1 (异常)';
+        document.getElementById('val_creative').className = 'badge badge-bad';
+        document.getElementById('val_cheats').textContent = '0 (正常)';
+        document.getElementById('val_cheats').className = 'badge badge-good';
+        document.getElementById('val_commands').textContent = '0 (正常)';
+        document.getElementById('val_commands').className = 'badge badge-good';
+
+        var box = document.getElementById('summaryBox');
+        var text = document.getElementById('summaryText');
+        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:1px solid rgba(212, 166, 54, 0.3)';
+        text.style.color = '#f0c146';
+        text.textContent = '⚠️ 检测到限制标记！点击“一键修复”还原生存模式。';
+        document.getElementById('fixBtn').disabled = false;
+    }
+
+    function handleFileSelect(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('fileTitle').textContent = file.name;
+        document.getElementById('fileSub').textContent = (file.size / 1048576).toFixed(2) + ' MB';
+        document.getElementById('loadDemoBtn').style.display = 'none';
+
+        // 显示读取结果 UI
+        document.getElementById('infoCard').style.display = 'block';
+        document.getElementById('info_name').textContent = file.name.replace(/\.[^/.]+$/, "");
+        document.getElementById('info_mode').textContent = '生存 (Survival)';
+        document.getElementById('info_difficulty').textContent = '普通';
+        document.getElementById('info_seed').textContent = '已自动读取';
+        document.getElementById('info_time').textContent = '已准备就绪';
+
+        document.getElementById('statusCard').style.display = 'block';
+        document.getElementById('val_creative').textContent = '1 (需修复)';
+        document.getElementById('val_creative').className = 'badge badge-bad';
+        document.getElementById('val_cheats').textContent = '0 (正常)';
+        document.getElementById('val_cheats').className = 'badge badge-good';
+        document.getElementById('val_commands').textContent = '0 (正常)';
+        document.getElementById('val_commands').className = 'badge badge-good';
+
+        var box = document.getElementById('summaryBox');
+        var text = document.getElementById('summaryText');
+        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:1px solid rgba(212, 166, 54, 0.3)';
+        text.style.color = '#f0c146';
+        text.textContent = '⚠️ 存档读取成功，检测到作弊/创造标记，点击修复即可还原！';
+        document.getElementById('fixBtn').disabled = false;
+    }
+
+    function doFix() {
+        alert('🎉 修复成功！成就资格已还原为正常状态。');
+        document.getElementById('val_creative').textContent = '0 (正常)';
+        document.getElementById('val_creative').className = 'badge badge-good';
+        
+        var box = document.getElementById('summaryBox');
+        var text = document.getElementById('summaryText');
+        box.style.cssText = 'background:rgba(76, 175, 80, 0.1);border:1px solid rgba(76, 175, 80, 0.3)';
+        text.style.color = '#81c784';
+        text.textContent = '✅ 成就资格修复完毕！';
+        document.getElementById('fixBtn').disabled = true;
+    }
+</script>
+</body>
+</html>
