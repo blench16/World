@@ -10,13 +10,13 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        /* ================= 极简黑白变量 ================= */
+        /* ================= 极简黑白变量（深色/浅色） ================= */
         :root, [data-theme="dark"] {
             --mono-bg: #09090b;
-            --mono-card: rgba(18, 18, 21, 0.75);
-            --mono-surface: rgba(24, 24, 27, 0.65);
-            --mono-border: rgba(255, 255, 255, 0.1);
-            --mono-border-light: rgba(255, 255, 255, 0.2);
+            --mono-card: #121215;
+            --mono-surface: #18181b;
+            --mono-border: #27272a;
+            --mono-border-light: #3f3f46;
             --mono-text: #f4f4f5;
             --mono-text-dim: #a1a1aa;
             --mono-icon-bg: #f4f4f5;
@@ -25,19 +25,18 @@
             --mono-badge-bad-text: #09090b;
             --mono-btn-primary-bg: #f4f4f5;
             --mono-btn-primary-text: #09090b;
-            --mono-hover-bg: rgba(255, 255, 255, 0.1);
-            --mono-drag-bg: rgba(255, 255, 255, 0.15);
-            --mono-log-bg: rgba(0, 0, 0, 0.5);
-            --blur-val: blur(16px) saturate(180%);
+            --mono-hover-bg: #27272a;
+            --mono-drag-bg: #3f3f46;
+            --mono-log-bg: #000000;
             --color-scheme: dark;
         }
 
         [data-theme="light"] {
             --mono-bg: #f4f4f5;
-            --mono-card: rgba(255, 255, 255, 0.75);
-            --mono-surface: rgba(250, 250, 250, 0.65);
-            --mono-border: rgba(0, 0, 0, 0.1);
-            --mono-border-light: rgba(0, 0, 0, 0.2);
+            --mono-card: #ffffff;
+            --mono-surface: #fafafa;
+            --mono-border: #e4e4e7;
+            --mono-border-light: #d4d4d8;
             --mono-text: #09090b;
             --mono-text-dim: #71717a;
             --mono-icon-bg: #09090b;
@@ -46,10 +45,9 @@
             --mono-badge-bad-text: #ffffff;
             --mono-btn-primary-bg: #09090b;
             --mono-btn-primary-text: #ffffff;
-            --mono-hover-bg: rgba(0, 0, 0, 0.05);
-            --mono-drag-bg: rgba(0, 0, 0, 0.1);
-            --mono-log-bg: rgba(244, 244, 245, 0.8);
-            --blur-val: blur(16px) saturate(180%);
+            --mono-hover-bg: #f4f4f5;
+            --mono-drag-bg: #e4e4e7;
+            --mono-log-bg: #f4f4f5;
             --color-scheme: light;
         }
 
@@ -71,11 +69,13 @@
             transition: background-color 0.25s ease, color 0.25s ease;
         }
 
+        /* 自定义背景图时的遮罩 */
         body.has-custom-bg::before {
             content: "";
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
             z-index: 0;
             pointer-events: none;
         }
@@ -86,13 +86,11 @@
             width: 100%;
             max-width: 480px;
             background: var(--mono-card);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             border: 1px solid var(--mono-border);
-            border-radius: 16px;
+            border-radius: 12px;
             padding: 28px 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            transition: max-width 0.3s ease, padding 0.3s ease;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: background-color 0.25s ease, border-color 0.25s ease;
         }
         
         .control-box {
@@ -104,11 +102,9 @@
         }
         .ctrl-select, .ctrl-btn {
             background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             color: var(--mono-text);
             border: 1px solid var(--mono-border);
-            padding: 4px 10px;
+            padding: 4px 8px;
             font-size: 0.72rem;
             font-weight: 500;
             border-radius: 6px;
@@ -141,8 +137,6 @@
         .file-dropzone{
             position:relative;
             background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             border: 1px dashed var(--mono-border-light);
             border-radius: 8px;
             padding: 32px 16px 24px 16px;
@@ -181,8 +175,6 @@
 
         .accordion{
             background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             border: 1px solid var(--mono-border);
             border-radius: 8px;
             margin-bottom: 12px;
@@ -231,8 +223,6 @@
         }
         .feature-item {
             background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             border: 1px solid var(--mono-border);
             padding: 12px 8px;
             text-align: center;
@@ -242,21 +232,13 @@
         .feature-item .f-title { font-size: 0.75rem; font-weight: 600; color: var(--mono-text); margin-bottom: 2px; }
         .feature-item .f-desc { font-size: 0.65rem; color: var(--mono-text-dim); line-height: 1.4; }
 
-        .cards-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
         .card-box {
             display:none;
             background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             border: 1px solid var(--mono-border);
             border-radius: 8px;
             padding: 18px;
+            margin-bottom: 16px;
             animation: fadeIn .25s ease;
         }
         .card-title {
@@ -347,8 +329,6 @@
         #log{
             margin-top:16px; padding:12px;
             background: var(--mono-log-bg);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
             border: 1px solid var(--mono-border);
             border-radius: 6px;
             font-family: ui-monospace, SFMono-Regular, monospace;
@@ -401,35 +381,17 @@
             text-overflow: ellipsis;
         }
         .history-time { color: var(--mono-text-dim); font-size: 0.65rem; }
-
-        /* ================= 手机/设备横屏适配 (Landscape) ================= */
-        @media screen and (orientation: landscape) and (max-height: 520px) {
-            body { padding: 12px 16px; }
-            .container { max-width: 720px; padding: 16px 20px; }
-            .header { margin-top: 0; margin-bottom: 14px; }
-            .icon-box { width: 42px; height: 42px; font-size: 20px; margin-bottom: 6px; }
-            h1 { font-size: 1.15rem; }
-            p.desc { font-size: 0.75rem; }
-            .file-dropzone { padding: 18px 12px 14px 12px; margin-bottom: 12px; }
-            .features-grid { margin-bottom: 10px; }
-            .feature-item { padding: 8px 4px; }
-            .cards-wrapper { flex-direction: row; gap: 12px; }
-            .cards-wrapper .card-box { flex: 1; margin-bottom: 0; }
-            .status-item { padding: 6px 0; font-size: 0.75rem; }
-            .btn-group { margin-top: 10px; }
-            button { padding: 8px; font-size: 0.8rem; }
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <!-- 右上角控制栏 -->
     <div class="control-box">
-        <button class="ctrl-btn" id="bgBtn" title="更换背景图片">背景</button>
+        <button class="ctrl-btn" id="bgBtn" title="更换背景图片">🖼️ 背景</button>
         <select id="themeSelect" class="ctrl-select">
-            <option value="system">系统</option>
-            <option value="dark">深色</option>
-            <option value="light">浅色</option>
+            <option value="system">🌗 系统</option>
+            <option value="dark">🌑 深色</option>
+            <option value="light">☀️ 浅色</option>
         </select>
         <select id="langSelect" class="ctrl-select">
             <option value="zh">简体中文</option>
@@ -487,63 +449,71 @@
             </div>
             <div class="accordion-content" id="faqGuide"></div>
         </div>
+
+        <div style="margin-top: 12px; background: var(--mono-surface); border: 1px solid var(--mono-border); padding: 12px; border-radius: 8px;">
+            <div style="font-size: 0.75rem; font-weight: 600; color: var(--mono-text); margin-bottom: 8px; text-align: center;" id="stepTitle">⚡ 三步轻松修复</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--mono-text-dim); text-align: center;">
+                <div id="step1">1. 导入存档/DAT</div>
+                <div style="color: var(--mono-border-light);">➔</div>
+                <div id="step2">2. 自动诊断 NBT</div>
+                <div style="color: var(--mono-border-light);">➔</div>
+                <div id="step3">3. 下载并覆盖</div>
+            </div>
+        </div>
     </div>
 
-    <!-- 数据展现区域 -->
-    <div class="cards-wrapper">
-        <div class="card-box" id="infoCard">
-            <div class="card-title"><span id="infoCardTitle">🗺️ 存档概览信息</span></div>
-            <div class="status-item">
-                <span class="key-name" id="k_name">🌍 世界名称</span>
-                <span id="info_name" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_mode">🎮 游戏模式</span>
-                <span id="info_mode" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_diff">🎚️ 难度</span>
-                <span id="info_difficulty" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_seed">🌱 地图种子</span>
-                <span id="info_seed" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_time">⏱️ 游戏时间 / 天数</span>
-                <span id="info_time" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_size">📦 存档大小</span>
-                <span id="info_size" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_format">📄 文件格式</span>
-                <span id="info_format" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_nbt">✅ NBT 状态</span>
-                <span id="info_nbt_status" class="badge badge-good">解析正常</span>
-            </div>
+    <div class="card-box" id="infoCard">
+        <div class="card-title"><span id="infoCardTitle">🗺️ 存档概览信息</span></div>
+        <div class="status-item">
+            <span class="key-name" id="k_name">🌍 世界名称</span>
+            <span id="info_name" class="val-info">-</span>
         </div>
+        <div class="status-item">
+            <span class="key-name" id="k_mode">🎮 游戏模式</span>
+            <span id="info_mode" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name" id="k_diff">🎚️ 难度</span>
+            <span id="info_difficulty" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name" id="k_seed">🌱 地图种子</span>
+            <span id="info_seed" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name" id="k_time">⏱️ 游戏时间 / 天数</span>
+            <span id="info_time" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name" id="k_size">📦 存档大小</span>
+            <span id="info_size" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name" id="k_format">📄 文件格式</span>
+            <span id="info_format" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name" id="k_nbt">✅ NBT 状态</span>
+            <span id="info_nbt_status" class="badge badge-good">解析正常</span>
+        </div>
+    </div>
 
-        <div class="card-box" id="statusCard">
-            <div class="card-title"><span id="statusCardTitle">🔒 成就限制状态</span></div>
-            <div class="status-item">
-                <span class="key-name">hasBeenLoadedInCreative</span>
-                <span id="val_creative" class="badge">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name">cheatsEnabled</span>
-                <span id="val_cheats" class="badge">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name">commandsEnabled</span>
-                <span id="val_commands" class="badge">-</span>
-            </div>
-            <div class="summary-box" id="summaryBox"><span id="summaryText"></span></div>
-            <div class="backup-note" id="backupNoteText">💾 修复时自动备份原始数据</div>
+    <div class="card-box" id="statusCard">
+        <div class="card-title"><span id="statusCardTitle">🔒 成就限制状态</span></div>
+        <div class="status-item">
+            <span class="key-name">hasBeenLoadedInCreative</span>
+            <span id="val_creative" class="badge">-</span>
         </div>
+        <div class="status-item">
+            <span class="key-name">cheatsEnabled</span>
+            <span id="val_cheats" class="badge">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">commandsEnabled</span>
+            <span id="val_commands" class="badge">-</span>
+        </div>
+        <div class="summary-box" id="summaryBox"><span id="summaryText"></span></div>
+        <div class="backup-note" id="backupNoteText">💾 修复时自动备份原始数据</div>
     </div>
 
     <div class="btn-group" id="actionGroup" style="display:none;">
@@ -567,7 +537,7 @@
 
     <div id="log"></div>
 
-    <div style="margin-top: 16px; padding: 12px; background: var(--mono-surface); backdrop-filter: var(--blur-val); -webkit-backdrop-filter: var(--blur-val); border: 1px solid var(--mono-border); border-left: 2px solid var(--mono-text); border-radius: 6px; font-size: 0.72rem; color: var(--mono-text-dim); line-height: 1.5; display: flex; align-items: center; gap: 8px;">
+    <div style="margin-top: 16px; padding: 12px; background: var(--mono-surface); border: 1px solid var(--mono-border); border-left: 2px solid var(--mono-text); border-radius: 6px; font-size: 0.72rem; color: var(--mono-text-dim); line-height: 1.5; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 0.9rem;">💡</span>
         <span id="tipText"></span>
     </div>
@@ -579,15 +549,6 @@
 </div>
 
 <script>
-// ================= 辅助：文件大小格式化 =================
-function formatBytes(bytes) {
-    if (bytes === 0 || !bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
 // ================= 主题模式 (系统 / 深色 / 浅色) =================
 const themeSelect = document.getElementById('themeSelect');
 
@@ -639,7 +600,8 @@ bgFileInput.addEventListener('change', (e) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(evt) {
-        setBackground(evt.target.result);
+        const base64 = evt.target.result;
+        setBackground(base64);
     };
     reader.readAsDataURL(file);
 });
@@ -661,6 +623,7 @@ function clearBackground() {
     bgFileInput.value = '';
 }
 
+// 加载历史背景
 (function loadSavedBg() {
     const savedImg = localStorage.getItem('mcsr_custom_bg');
     if (savedImg) setBackground(savedImg);
@@ -681,6 +644,8 @@ const translations = {
         pathContent: `<b>📱 iOS (iPhone/iPad):</b> 打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。<br><b>🤖 Android:</b> 进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。<br><b>💻 Windows:</b> 按 <code>Win + R</code> 粘贴路径：<code>%localappdata%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\minecraftWorlds</code>`,
         faqTitle: "❓ 常见问题与注意细节",
         faqContent: `<b>1. 修复后进游戏还需要注意什么？</b><br>进游戏后千万不要开启“激活作弊”或切换到“创造模式”，否则游戏会自动再次锁定成就资格。<br><br><b>2. 为什么修复后导入游戏提示失败？</b><br>如果是手动打包的 .zip，请确认是将存档<b>文件夹内部</b>的文件进行压缩，而不是把外层文件夹打了一个“双层包”。`,
+        stepTitle: "⚡ 三步轻松修复",
+        step1: "1. 导入存档/DAT", step2: "2. 自动诊断 NBT", step3: "3. 下载并覆盖",
         infoCardTitle: "🗺️ 存档概览信息",
         k_name: "🌍 世界名称", k_mode: "🎮 游戏模式", k_diff: "🎚️ 难度", k_seed: "🌱 地图种子",
         k_time: "⏱️ 游戏时间 / 天数", k_size: "📦 存档大小", k_format: "📄 文件格式", k_nbt: "✅ NBT 状态",
@@ -716,6 +681,8 @@ const translations = {
         pathContent: `<b>📱 iOS (iPhone/iPad):</b> Open "Files" app ➔ On My iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds, compress the world folder and rename it to <code>.mcworld</code>.<br><b>🤖 Android:</b> Navigate to <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> to compress.<br><b>💻 Windows:</b> Press <code>Win + R</code> and paste: <code>%localappdata%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\minecraftWorlds</code>`,
         faqTitle: "❓ FAQ & Important Notes",
         faqContent: `<b>1. What should I avoid after fixing?</b><br>Do NOT enable "Activate Cheats" or switch to "Creative Mode" in-game, or achievements will be disabled again.<br><br><b>2. Why did importing fail?</b><br>If manually zipping, ensure you compress the <b>contents inside</b> the world folder, not the root folder itself.`,
+        stepTitle: "⚡ 3 Easy Steps",
+        step1: "1. Import World/DAT", step2: "2. Auto Diagnose", step3: "3. Download & Replace",
         infoCardTitle: "🗺️ World Overview",
         k_name: "🌍 World Name", k_mode: "🎮 Game Mode", k_diff: "🎚️ Difficulty", k_seed: "🌱 World Seed",
         k_time: "⏱️ In-Game Time", k_size: "📦 File Size", k_format: "📄 File Format", k_nbt: "✅ NBT Status",
@@ -750,13 +717,31 @@ function setLanguage(lang) {
     if (langSelect) langSelect.value = lang;
 
     const textMap = {
-        appTitle: t.appTitle, appDesc: t.appDesc,
-        f1_title: t.f1_title, f2_title: t.f2_title, f3_title: t.f3_title,
-        pathTitle: t.pathTitle, faqTitle: t.faqTitle, infoCardTitle: t.infoCardTitle,
-        k_name: t.k_name, k_mode: t.k_mode, k_diff: t.k_diff, k_seed: t.k_seed,
-        k_time: t.k_time, k_size: t.k_size, k_format: t.k_format, k_nbt: t.k_nbt,
-        statusCardTitle: t.statusCardTitle, resetBtn: t.resetBtn, fixBtn: t.fixBtn,
-        loadDemoBtn: t.demoBtn, historyTitle: t.historyTitle
+        appTitle: t.appTitle,
+        appDesc: t.appDesc,
+        f1_title: t.f1_title,
+        f2_title: t.f2_title,
+        f3_title: t.f3_title,
+        pathTitle: t.pathTitle,
+        faqTitle: t.faqTitle,
+        stepTitle: t.stepTitle,
+        step1: t.step1,
+        step2: t.step2,
+        step3: t.step3,
+        infoCardTitle: t.infoCardTitle,
+        k_name: t.k_name,
+        k_mode: t.k_mode,
+        k_diff: t.k_diff,
+        k_seed: t.k_seed,
+        k_time: t.k_time,
+        k_size: t.k_size,
+        k_format: t.k_format,
+        k_nbt: t.k_nbt,
+        statusCardTitle: t.statusCardTitle,
+        resetBtn: t.resetBtn,
+        fixBtn: t.fixBtn,
+        loadDemoBtn: t.demoBtn,
+        historyTitle: t.historyTitle
     };
 
     for (let id in textMap) {
@@ -820,52 +805,27 @@ function saveHistoryItem(item) {
     renderHistory();
 }
 
-// 彻底重构历史记录渲染函数，采用纯 DOM API 防止任何形式的 XSS 注入
 function renderHistory() {
     const container = document.getElementById('historyContainer');
-    container.textContent = ''; // 清空子节点
-
     const history = getHistory();
     const t = translations[currentLang];
 
     if (history.length === 0) {
-        const noHistDiv = document.createElement('div');
-        noHistDiv.style.cssText = 'text-align: center; color: var(--mono-text-dim); padding: 12px; font-size: 0.72rem;';
-        noHistDiv.id = 'noHistoryText';
-        noHistDiv.textContent = t.noHistoryText;
-        container.appendChild(noHistDiv);
+        container.innerHTML = `<div style="text-align: center; color: var(--mono-text-dim); padding: 12px; font-size: 0.72rem;" id="noHistoryText">${t.noHistoryText}</div>`;
         return;
     }
 
-    history.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'history-item';
-
-        const leftBox = document.createElement('div');
-        
-        const nameDiv = document.createElement('div');
-        nameDiv.className = 'history-name';
-        nameDiv.title = item.worldName;
-        nameDiv.textContent = item.worldName; // 纯文本赋值，防范属性与标签 XSS
-
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'history-time';
-        timeDiv.textContent = `${item.timestamp} · ${item.fileName}`;
-
-        leftBox.appendChild(nameDiv);
-        leftBox.appendChild(timeDiv);
-
-        const rightBox = document.createElement('div');
-        const badgeSpan = document.createElement('span');
-        badgeSpan.className = `badge ${item.status === 'Fixed' ? 'badge-good' : 'badge-bad'}`;
-        badgeSpan.textContent = item.status;
-
-        rightBox.appendChild(badgeSpan);
-
-        itemDiv.appendChild(leftBox);
-        itemDiv.appendChild(rightBox);
-        container.appendChild(itemDiv);
-    });
+    container.innerHTML = history.map(item => `
+        <div class="history-item">
+            <div>
+                <div class="history-name" title="${item.worldName}">${item.worldName}</div>
+                <div class="history-time">${item.timestamp} · ${item.fileName}</div>
+            </div>
+            <div>
+                <span class="badge ${item.status === 'Fixed' ? 'badge-good' : 'badge-bad'}">${item.status}</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
@@ -888,7 +848,7 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     let csv = '\uFEFF';
     csv += 'World Name,File Name,Time,Status,Creative Flag,Cheats Flag\n';
     history.forEach(h => {
-        csv += `"${(h.worldName || '').replace(/"/g, '""')}","${h.fileName}","${h.timestamp}","${h.status}",${h.creative},${h.cheats}\n`;
+        csv += `"${h.worldName.replace(/"/g, '""')}","${h.fileName}","${h.timestamp}","${h.status}",${h.creative},${h.cheats}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     downloadFile(blob, `mcsr_fixer_history_${Date.now()}.csv`);
@@ -898,7 +858,7 @@ function loadDemoData() {
     const t = translations[currentLang];
     document.getElementById('introGuides').style.display = 'none';
     document.getElementById('fileTitle').textContent = t.demoLoadedTitle;
-    document.getElementById('fileSub').textContent = '50 KB (Demo Mode)';
+    document.getElementById('fileSub').textContent = '0.05 MB (Demo Mode)';
     document.getElementById('loadDemoBtn').style.display = 'none';
 
     window.isDemoMode = true;
@@ -959,7 +919,7 @@ function loadDemoData() {
         document.getElementById('loadDemoBtn').style.display = 'none';
 
         document.getElementById('fileTitle').textContent = window.selectedFileObj.name;
-        document.getElementById('fileSub').textContent = formatBytes(window.selectedFileObj.size);
+        document.getElementById('fileSub').textContent = (window.selectedFileObj.size / 1024 / 1024).toFixed(2) + ' MB';
         log('>> Processing file...');
 
         try {
@@ -978,20 +938,10 @@ function loadDemoData() {
                 zipInstance = new JSZip();
                 const zipContent = await zipInstance.loadAsync(window.selectedFileObj);
                 targetLevelDatPath = null;
-
-                // 安全匹配目录与文件
-                zipContent.forEach((path, entry) => {
-                    if (!entry.dir && path.toLowerCase().endsWith('level.dat')) {
-                        targetLevelDatPath = path;
-                    }
-                });
-
+                zipContent.forEach(path => path.toLowerCase().endsWith('level.dat') && (targetLevelDatPath = path));
                 if (!targetLevelDatPath) return alert('level.dat not found! Please check your file.');
                 
-                const levelDatEntry = zipContent.file(targetLevelDatPath);
-                if (!levelDatEntry) return alert('level.dat entry invalid!');
-
-                rawLevelDat = await levelDatEntry.async('uint8array');
+                rawLevelDat = await zipContent.file(targetLevelDatPath).async('uint8array');
                 originalBackup = new Uint8Array(rawLevelDat);
                 document.getElementById('backupNoteText').textContent = t.backupZipText;
                 parseNBT(rawLevelDat);
@@ -1102,11 +1052,12 @@ function loadDemoData() {
         }
 
         if (window.selectedFileObj) {
-            document.getElementById('info_size').textContent = formatBytes(window.selectedFileObj.size);
+            const mb = (window.selectedFileObj.size / (1024 * 1024)).toFixed(2);
+            document.getElementById('info_size').textContent = `${mb} MB`;
             const ext = window.selectedFileObj.name.substring(window.selectedFileObj.name.lastIndexOf('.')).toLowerCase();
             document.getElementById('info_format').textContent = `${ext} file`;
         } else {
-            document.getElementById('info_size').textContent = '50 KB';
+            document.getElementById('info_size').textContent = '0.05 MB';
             document.getElementById('info_format').textContent = '.mcworld';
         }
 
@@ -1115,8 +1066,6 @@ function loadDemoData() {
 
         document.getElementById('statusCard').style.display = 'block';
         document.getElementById('actionGroup').style.display = 'flex';
-        
-        // 判断是否需要修复：GameType 非 0 (非生存模式) 或限制 Key 触发
         const needsFix = targetKeys.some(k => parsed[k] === 1) || parsed.GameType !== 0;
         
         updateBadge('val_creative', parsed.hasBeenLoadedInCreative);
@@ -1147,6 +1096,15 @@ function loadDemoData() {
 
     document.getElementById('fixBtn').addEventListener('click', async () => {
         const parsed = window.parsedNBT_data;
+        
+        saveHistoryItem({
+            worldName: parsed.LevelName || 'Unknown',
+            fileName: window.selectedFileObj ? window.selectedFileObj.name : 'Demo.mcworld',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'Fixed',
+            creative: parsed.hasBeenLoadedInCreative ?? 0,
+            cheats: parsed.cheatsEnabled ?? 0
+        });
 
         if (window.isDemoMode) {
             log('>> [Demo Mode] Simulating fix logic...');
@@ -1158,17 +1116,8 @@ function loadDemoData() {
             window.parsedNBT_data.cheatsEnabled = 0;
             window.parsedNBT_data.commandsEnabled = 0;
             window.parsedNBT_data.GameType = 0;
-
-            saveHistoryItem({
-                worldName: parsed.LevelName || 'Unknown',
-                fileName: 'Demo.mcworld',
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: 'Fixed',
-                creative: 1,
-                cheats: 0
-            });
-
             analyzeAndRender();
+
             log('🎉 [Demo Completed] In real mode, fixed file will download automatically!');
             return;
         }
@@ -1230,82 +1179,45 @@ function loadDemoData() {
                 verifyOff += skipTag(t, view, verifyOff);
             }
         }
-
-        if (!allOk) {
-            alert('Verification Failed! Please retry.');
-            return;
-        }
+        if (!allOk) return alert('Verification Failed! Please retry.');
         log('   ✓ Verified OK');
 
-        // 单 level.dat 模式直接导出
         if (isSingleDat) {
             log('>> Exporting fixed level.dat ...');
             const blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
             downloadFile(blob, 'level.dat');
             log('🎉 Done! Fixed level.dat downloaded.');
             
-            // 操作成功后写日志并更新 UI
-            saveHistoryItem({
-                worldName: parsed.LevelName || 'Unknown',
-                fileName: window.selectedFileObj.name,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: 'Fixed',
-                creative: parsed.hasBeenLoadedInCreative ?? 0,
-                cheats: parsed.cheatsEnabled ?? 0
-            });
-
             targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
             window.parsedNBT_data.GameType = 0;
             analyzeAndRender();
             return;
         }
 
-        // Zip 打包导出逻辑（利用 Promise.all 并行解压与填充）
         log('>> Packing archive with level.dat.bak ...');
         const newZip = new JSZip();
+        for (let path in zipInstance.files) {
+            const f = zipInstance.files[path];
+            if (f.dir) continue;
+            if (path.toLowerCase().endsWith('level.dat_old')) continue;
 
-        const zipFilePromises = [];
-        zipInstance.forEach((path, entry) => {
-            if (!entry.dir) {
-                zipFilePromises.push(
-                    entry.async('uint8array').then(data => ({ path, data }))
-                );
-            }
-        });
-
-        const zipFiles = await Promise.all(zipFilePromises);
-
-        zipFiles.forEach(file => {
-            // 完整保留 level.dat_old 备份文件，不静默丢弃
-            if (file.path === targetLevelDatPath) {
-                newZip.file(file.path + '.bak', originalBackup);
-                newZip.file(file.path, rawLevelDat);
+            if (path === targetLevelDatPath) {
+                newZip.file(path + '.bak', originalBackup);
+                newZip.file(path, rawLevelDat);
             } else {
-                newZip.file(file.path, file.data);
+                newZip.file(path, await f.async('uint8array'));
             }
-        });
+        }
 
-        // 生成最终压缩包（采用默认 DEFLATE 算法压缩）
         const blob = await newZip.generateAsync({ 
             type: 'blob', 
             mimeType: 'application/x-minecraft-world',
-            compression: 'DEFLATE',
-            compressionOptions: { level: 6 }
+            compression: 'STORE' 
         });
         
         const outName = 'Fixed_' + window.selectedFileObj.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
         downloadFile(blob, outName);
         log('🎉 Success! Fixed .mcworld downloaded.');
-
-        // 仅在成功导出后才记录 History Item（确保原子性）
-        saveHistoryItem({
-            worldName: parsed.LevelName || 'Unknown',
-            fileName: window.selectedFileObj.name,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'Fixed',
-            creative: parsed.hasBeenLoadedInCreative ?? 0,
-            cheats: parsed.cheatsEnabled ?? 0
-        });
 
         targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
         window.parsedNBT_data.GameType = 0;
