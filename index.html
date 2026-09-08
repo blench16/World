@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>成就资格修复器</title>
+    <title>成就资格修复器 / Achievement Fixer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root{
@@ -23,7 +23,7 @@
         }
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--mc-dark);
             background-image: 
                 linear-gradient(rgba(0,0,0,0.53), rgba(0,0,0,0.53)),
@@ -39,6 +39,7 @@
             min-height: 100vh;
         }
         .container{
+            position: relative;
             width: 100%;
             max-width: 460px;
             background: var(--mc-card);
@@ -51,7 +52,26 @@
             padding: 24px 20px;
             image-rendering: pixelated;
         }
-        .header{text-align:center;margin-bottom:20px}
+        .lang-select-box {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+        .lang-select {
+            background: #111;
+            color: var(--mc-gold);
+            border: 2px solid var(--mc-border);
+            padding: 4px 8px;
+            font-size: 0.72rem;
+            font-weight: bold;
+            border-radius: 2px;
+            cursor: pointer;
+            outline: none;
+            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.1);
+        }
+        .lang-select:hover { border-color: var(--mc-green); }
+
+        .header{text-align:center;margin-bottom:20px;margin-top:8px;}
         .icon-box{
             width: 64px; height: 64px;
             background: linear-gradient(135deg, #62bd37, #4a9128);
@@ -316,10 +336,17 @@
 </head>
 <body>
 <div class="container">
+    <div class="lang-select-box">
+        <select id="langSelect" class="lang-select">
+            <option value="zh">简体中文</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
     <div class="header">
         <div class="icon-box">🛠️</div>
-        <h1>成就资格修复器</h1>
-        <p class="desc">精准NBT解析 · 自动备份 · 像素风界面</p>
+        <h1 id="appTitle">成就资格修复器</h1>
+        <p class="desc" id="appDesc">精准NBT解析 · 自动备份 · 像素风界面</p>
     </div>
 
     <!-- 上传框 -->
@@ -327,110 +354,97 @@
         <div class="title" id="fileTitle">点击 或 拖拽文件到此处</div>
         <div class="subtitle" id="fileSub">支持 .mcworld / .zip / level.dat · 基岩版专用</div>
         <div class="demo-btn-link" id="loadDemoBtn" onclick="event.stopPropagation(); loadDemoData();">🧪 没有存档？点击一键加载示例数据预览</div>
-        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat,application/zip">
+        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat,application/zip,application/octet-stream,*/*">
     </div>
 
-    <!-- 初始说明区域：上传后会自动收起 -->
+    <!-- 初始说明区域 -->
     <div id="introGuides">
         <div class="features-grid">
             <div class="feature-item">
                 <div class="f-icon">🔒</div>
-                <div class="f-title">纯本地解析</div>
-                <div class="f-desc">文件零上传<br>浏览器本地处理</div>
+                <div class="f-title" id="f1_title">纯本地解析</div>
+                <div class="f-desc" id="f1_desc">文件零上传<br>浏览器本地处理</div>
             </div>
             <div class="feature-item">
                 <div class="f-icon">💾</div>
-                <div class="f-title">自动备份</div>
-                <div class="f-desc">自动生成原包<br>.dat.bak 备份</div>
+                <div class="f-title" id="f2_title">自动备份</div>
+                <div class="f-desc" id="f2_desc">自动生成原包<br>.dat.bak 备份</div>
             </div>
             <div class="feature-item">
                 <div class="f-icon">🎯</div>
-                <div class="f-title">无损修改</div>
-                <div class="f-desc">只清空限制标记<br>不影响建筑物品</div>
+                <div class="f-title" id="f3_title">无损修改</div>
+                <div class="f-desc" id="f3_desc">只清空限制标记<br>不影响建筑物品</div>
             </div>
         </div>
 
         <div class="accordion">
             <div class="accordion-header" onclick="toggleAccordion('pathGuide')">
-                <span>📖 如何导出存档文件？(.mcworld)</span>
+                <span id="pathTitle">📖 如何导出存档文件？(.mcworld)</span>
                 <span id="pathGuideArrow">▼</span>
             </div>
-            <div class="accordion-content" id="pathGuide">
-                <b>📱 iOS (iPhone/iPad):</b>
-                打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。
-                <br><b>🤖 Android:</b>
-                进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。（或直接在 MC 游戏内主界面选择导出）
-                <br><b>💻 Windows:</b>
-                按 <code>Win + R</code> 粘贴路径：
-                <code>%localappdata%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds</code>
-            </div>
+            <div class="accordion-content" id="pathGuide"></div>
         </div>
 
         <div class="accordion">
             <div class="accordion-header" onclick="toggleAccordion('faqGuide')">
-                <span>❓ 常见问题与注意细节</span>
+                <span id="faqTitle">❓ 常见问题与注意细节</span>
                 <span id="faqGuideArrow">▼</span>
             </div>
-            <div class="accordion-content" id="faqGuide">
-                <b>1. 修复后进游戏还需要注意什么？</b><br>
-                进游戏后千万不要开启“激活作弊”或切换到“创造模式”，否则游戏会自动再次锁定成就资格。<br><br>
-                <b>2. 为什么修复后导入游戏提示失败？</b><br>
-                如果是手动打包的 .zip，请确认是将存档<b>文件夹内部</b>的文件进行压缩，而不是把外层文件夹打了一个“双层包”。
-            </div>
+            <div class="accordion-content" id="faqGuide"></div>
         </div>
 
         <div style="margin-top: 12px; background: rgba(0,0,0,0.25); border: 2px solid var(--mc-border); padding: 12px 10px; border-radius: 2px;">
-            <div style="font-size: 0.75rem; font-weight: bold; color: var(--mc-gold); margin-bottom: 8px; text-shadow: 1px 1px 0 #000; text-align: center;">⚡ 三步轻松修复</div>
+            <div style="font-size: 0.75rem; font-weight: bold; color: var(--mc-gold); margin-bottom: 8px; text-shadow: 1px 1px 0 #000; text-align: center;" id="stepTitle">⚡ 三步轻松修复</div>
             <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--mc-text-dim); text-align: center;">
-                <div>1. 导入存档/DAT</div>
+                <div id="step1">1. 导入存档/DAT</div>
                 <div style="color: var(--mc-border);">➔</div>
-                <div>2. 自动诊断 NBT</div>
+                <div id="step2">2. 自动诊断 NBT</div>
                 <div style="color: var(--mc-border);">➔</div>
-                <div>3. 下载并覆盖</div>
+                <div id="step3">3. 下载并覆盖</div>
             </div>
         </div>
     </div>
 
     <!-- 1. 存档概览信息面板 -->
     <div class="card-box" id="infoCard">
-        <div class="card-title">🗺️ 存档概览信息</div>
+        <div class="card-title" id="infoCardTitle">🗺️ 存档概览信息</div>
         <div class="status-item">
-            <span class="key-name">🌍 世界名称</span>
+            <span class="key-name" id="k_name">🌍 世界名称</span>
             <span id="info_name" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">🎮 游戏模式</span>
+            <span class="key-name" id="k_mode">🎮 游戏模式</span>
             <span id="info_mode" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">🎚️ 难度</span>
+            <span class="key-name" id="k_diff">🎚️ 难度</span>
             <span id="info_difficulty" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">🌱 地图种子</span>
+            <span class="key-name" id="k_seed">🌱 地图种子</span>
             <span id="info_seed" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">⏱️ 游戏时间 / 天数</span>
+            <span class="key-name" id="k_time">⏱️ 游戏时间 / 天数</span>
             <span id="info_time" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">📦 存档大小</span>
+            <span class="key-name" id="k_size">📦 存档大小</span>
             <span id="info_size" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">📄 文件格式</span>
+            <span class="key-name" id="k_format">📄 文件格式</span>
             <span id="info_format" class="val-info">-</span>
         </div>
         <div class="status-item">
-            <span class="key-name">✅ NBT 状态</span>
+            <span class="key-name" id="k_nbt">✅ NBT 状态</span>
             <span id="info_nbt_status" class="badge badge-good">解析正常</span>
         </div>
     </div>
 
     <!-- 2. 成就限制状态审查面板 -->
     <div class="card-box" id="statusCard">
-        <div class="card-title">🔒 成就限制状态</div>
+        <div class="card-title" id="statusCardTitle">🔒 成就限制状态</div>
         <div class="status-item">
             <span class="key-name">hasBeenLoadedInCreative</span>
             <span id="val_creative" class="badge">-</span>
@@ -455,16 +469,129 @@
 
     <div style="margin-top: 16px; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 2px dashed #444; border-radius: 2px; font-size: 0.7rem; color: #aaa; line-height: 1.5; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 1rem;">💡</span>
-        <span><b>温馨提示：</b>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。</span>
+        <span id="tipText"><b>温馨提示：</b>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。</span>
     </div>
 
     <div class="footer-info">
         Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener" class="twitter-link">@KotegawazzZ</a> 🕊️<br>
-        <span style="opacity: 0.6; font-size:0.65rem;">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>与 Mojang Studios 或 Microsoft 无关</span>
+        <span style="opacity: 0.6; font-size:0.65rem;" id="footerTag">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>与 Mojang Studios 或 Microsoft 无关</span>
     </div>
 </div>
 
 <script>
+// ===== 国际化文案字典 (i18n) =====
+const translations = {
+    zh: {
+        appTitle: "成就资格修复器",
+        appDesc: "精准NBT解析 · 自动备份 · 像素风界面",
+        dropTitle: "点击 或 拖拽文件到此处",
+        dropSub: "支持 .mcworld / .zip / level.dat · 基岩版专用",
+        demoBtn: "🧪 没有存档？点击一键加载示例数据预览",
+        f1_title: "纯本地解析", f1_desc: "文件零上传<br>浏览器本地处理",
+        f2_title: "自动备份", f2_desc: "自动生成原包<br>.dat.bak 备份",
+        f3_title: "无损修改", f3_desc: "只清空限制标记<br>不影响建筑物品",
+        pathTitle: "📖 如何导出存档文件？(.mcworld)",
+        pathContent: `<b>📱 iOS (iPhone/iPad):</b> 打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。<br><b>🤖 Android:</b> 进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。<br><b>💻 Windows:</b> 按 <code>Win + R</code> 粘贴路径：<code>%localappdata%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\minecraftWorlds</code>`,
+        faqTitle: "❓ 常见问题与注意细节",
+        faqContent: `<b>1. 修复后进游戏还需要注意什么？</b><br>进游戏后千万不要开启“激活作弊”或切换到“创造模式”，否则游戏会自动再次锁定成就资格。<br><br><b>2. 为什么修复后导入游戏提示失败？</b><br>如果是手动打包的 .zip，请确认是将存档<b>文件夹内部</b>的文件进行压缩，而不是把外层文件夹打了一个“双层包”。`,
+        stepTitle: "⚡ 三步轻松修复",
+        step1: "1. 导入存档/DAT", step2: "2. 自动诊断 NBT", step3: "3. 下载并覆盖",
+        infoCardTitle: "🗺️ 存档概览信息",
+        k_name: "🌍 世界名称", k_mode: "🎮 游戏模式", k_diff: "🎚️ 难度", k_seed: "🌱 地图种子",
+        k_time: "⏱️ 游戏时间 / 天数", k_size: "📦 存档大小", k_format: "📄 文件格式", k_nbt: "✅ NBT 状态",
+        statusCardTitle: "🔒 成就限制状态",
+        resetBtn: "重置", fixBtn: "一键修复并导出",
+        tipText: "<b>温馨提示：</b>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。",
+        footerTag: "Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>与 Mojang Studios 或 Microsoft 无关",
+        
+        badgeNormal: "0 (正常)", badgeAbnormal: "1 (异常)", badgeNotFound: "未找到",
+        nbtNormal: "解析正常", nbtError: "解析异常",
+        summaryWarn: "⚠️ 检测到限制标记或非生存模式！点击修复将自动重置并恢复生存模式。",
+        summaryOk: "✅ 存档状态正常，成就资格完好！",
+        backupDatText: "💾 修复时自动备份原始 level.dat 为 level.dat.bak",
+        backupZipText: "💾 修复时自动备份原 level.dat 到压缩包内 level.dat.bak",
+        
+        modes: { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)', 3: '旁观 (Spectator)' },
+        diffs: { 0: '和平 (Peaceful)', 1: '简单 (Easy)', 2: '普通 (Normal)', 3: '困难 (Hard)' },
+        timeFormat: (m, d) => `${m} 分钟 (第 ${d} 天)`,
+        demoLoadedTitle: "已加载：示例测试存档.mcworld"
+    },
+    en: {
+        appTitle: "Achievement Fixer",
+        appDesc: "NBT Parser · Auto Backup · Pixel Design",
+        dropTitle: "Click or Drag & Drop File Here",
+        dropSub: "Supports .mcworld / .zip / level.dat · Bedrock Edition",
+        demoBtn: "🧪 No world file? Click to load demo preview",
+        f1_title: "100% Local", f1_desc: "No server uploads<br>Processed in browser",
+        f2_title: "Auto Backup", f2_desc: "Auto-creates<br>.dat.bak file",
+        f3_title: "Safe Edit", f3_desc: "Clears locks only<br>Preserves builds & items",
+        pathTitle: "📖 How to export world files? (.mcworld)",
+        pathContent: `<b>📱 iOS (iPhone/iPad):</b> Open "Files" app ➔ On My iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds, compress the world folder and rename it to <code>.mcworld</code>.<br><b>🤖 Android:</b> Navigate to <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> to compress.<br><b>💻 Windows:</b> Press <code>Win + R</code> and paste: <code>%localappdata%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\minecraftWorlds</code>`,
+        faqTitle: "❓ FAQ & Important Notes",
+        faqContent: `<b>1. What should I avoid after fixing?</b><br>Do NOT enable "Activate Cheats" or switch to "Creative Mode" in-game, or achievements will be disabled again.<br><br><b>2. Why did importing fail?</b><br>If manually zipping, ensure you compress the <b>contents inside</b> the world folder, not the root folder itself.`,
+        stepTitle: "⚡ 3 Easy Steps",
+        step1: "1. Import World/DAT", step2: "2. Auto Diagnose", step3: "3. Download & Replace",
+        infoCardTitle: "🗺️ World Overview",
+        k_name: "🌍 World Name", k_mode: "🎮 Game Mode", k_diff: "🎚️ Difficulty", k_seed: "🌱 World Seed",
+        k_time: "⏱️ In-Game Time", k_size: "📦 File Size", k_format: "📄 File Format", k_nbt: "✅ NBT Status",
+        statusCardTitle: "🔒 Achievement Lock Status",
+        resetBtn: "Reset", fixBtn: "Fix & Export World",
+        tipText: "<b>Notice:</b> After fixing, do not enable cheats or switch to creative mode, otherwise achievements will be disabled again.",
+        footerTag: "Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft",
+        
+        badgeNormal: "0 (OK)", badgeAbnormal: "1 (Locked)", badgeNotFound: "N/A",
+        nbtNormal: "Parsed OK", nbtError: "Parse Error",
+        summaryWarn: "⚠️ Locks or non-survival mode detected! Click fix to restore survival mode & achievements.",
+        summaryOk: "✅ World status is clean! Achievements are active.",
+        backupDatText: "💾 Auto backups original level.dat as level.dat.bak",
+        backupZipText: "💾 Auto backups level.dat to level.dat.bak in package",
+        
+        modes: { 0: 'Survival', 1: 'Creative', 2: 'Adventure', 3: 'Spectator' },
+        diffs: { 0: 'Peaceful', 1: 'Easy', 2: 'Normal', 3: 'Hard' },
+        timeFormat: (m, d) => `${m} mins (Day ${d})`,
+        demoLoadedTitle: "Loaded: Demo_World.mcworld"
+    }
+};
+
+let currentLang = 'zh';
+let selectedFile = null;
+
+function setLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+    
+    // 1. 静态 DOM 替换
+    const ids = ['appTitle','appDesc','f1_title','f1_desc','f2_title','f2_desc','f3_title','f3_desc','pathTitle','faqTitle','stepTitle','step1','step2','step3','infoCardTitle','k_name','k_mode','k_diff','k_seed','k_time','k_size','k_format','k_nbt','statusCardTitle','resetBtn','fixBtn'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && t[id]) el.textContent = t[id];
+    });
+
+    // 2. 动态更新上传区域元素 (修复漏变动问题)
+    if (!window.parsedNBT_data && !selectedFile) {
+        document.getElementById('fileTitle').textContent = t.dropTitle;
+        document.getElementById('fileSub').textContent = t.dropSub;
+        document.getElementById('loadDemoBtn').textContent = t.demoBtn;
+    } else if (window.isDemoMode) {
+        document.getElementById('fileTitle').textContent = t.demoLoadedTitle;
+    }
+
+    // 3. 展开卡片与提示更新
+    document.getElementById('pathGuide').innerHTML = t.pathContent;
+    document.getElementById('faqGuide').innerHTML = t.faqContent;
+    document.getElementById('tipText').innerHTML = t.tipText;
+    document.getElementById('footerTag').innerHTML = t.footerTag;
+
+    // 4. 数据卡片二次渲染
+    if (window.parsedNBT_data) {
+        analyzeAndRender();
+    }
+}
+
+document.getElementById('langSelect').addEventListener('change', (e) => {
+    setLanguage(e.target.value);
+});
+
 function toggleAccordion(id) {
     const el = document.getElementById(id);
     const arrow = document.getElementById(id + 'Arrow');
@@ -477,7 +604,6 @@ function toggleAccordion(id) {
     }
 }
 
-// 辅助函数：安全读取 64 位小端序长整型，提升移动端浏览器兼容性
 function readInt64LE(view, offset) {
     const low = view.getUint32(offset, true);
     const high = view.getInt32(offset + 4, true);
@@ -488,54 +614,30 @@ function readInt64LE(view, offset) {
 }
 
 function loadDemoData() {
+    const t = translations[currentLang];
     document.getElementById('introGuides').style.display = 'none';
-    document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
-    document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
+    document.getElementById('fileTitle').textContent = t.demoLoadedTitle;
+    document.getElementById('fileSub').textContent = '0.05 MB (Demo Mode)';
     document.getElementById('loadDemoBtn').style.display = 'none';
 
     window.isDemoMode = true;
-    window.parsedNBT_demo = {
-        LevelName: "我的生存世界 (示例)",
+    window.parsedNBT_data = {
+        LevelName: currentLang === 'zh' ? "我的生存世界 (示例)" : "My Survival World (Demo)",
         GameType: 1,
         Difficulty: 2,
         RandomSeed: "-7363735107005477438",
-        Time: 576000, // 修复：使用兼容数值表示 24 天
+        Time: 576000,
         hasBeenLoadedInCreative: 1,
         cheatsEnabled: 0,
         commandsEnabled: 0
     };
 
-    document.getElementById('infoCard').style.display = 'block';
-    document.getElementById('info_name').textContent = window.parsedNBT_demo.LevelName;
-    document.getElementById('info_mode').textContent = '创造 (Creative)';
-    document.getElementById('info_difficulty').textContent = '普通 (Normal)';
-    document.getElementById('info_seed').textContent = window.parsedNBT_demo.RandomSeed;
-    document.getElementById('info_time').textContent = '240.0 分钟 (第 24 天)';
-    document.getElementById('info_size').textContent = '0.05 MB';
-    document.getElementById('info_format').textContent = '.mcworld (存档包)';
-    document.getElementById('info_nbt_status').textContent = '解析正常 (演示模式)';
-    document.getElementById('info_nbt_status').className = 'badge badge-good';
-
-    document.getElementById('statusCard').style.display = 'block';
-    document.getElementById('actionGroup').style.display = 'flex';
-
-    document.getElementById('val_creative').textContent = '1 (异常)';
-    document.getElementById('val_creative').className = 'badge badge-bad';
-    document.getElementById('val_cheats').textContent = '0 (正常)';
-    document.getElementById('val_cheats').className = 'badge badge-good';
-    document.getElementById('val_commands').textContent = '0 (正常)';
-    document.getElementById('val_commands').className = 'badge badge-good';
-
-    const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
-    box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
-    text.style.color = '#f0c146';
-    text.textContent = '⚠️ [演示模式] 检测到限制标记！点击修复将还原生存模式并清空标志位。';
-    document.getElementById('fixBtn').disabled = false;
+    analyzeAndRender();
 }
 
 (() => {
-    let zipInstance = null, targetLevelDatPath = null, rawLevelDat = null, selectedFile = null;
-    let parsedNBT = {}, originalBackup = null, isSingleDat = false;
+    let zipInstance = null, targetLevelDatPath = null, rawLevelDat = null;
+    let originalBackup = null, isSingleDat = false;
     const targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
 
     const TAG_END = 0, TAG_BYTE = 1, TAG_SHORT = 2, TAG_INT = 3, TAG_LONG = 4;
@@ -570,12 +672,13 @@ function loadDemoData() {
         if (!selectedFile) return;
         window.isDemoMode = false;
         
+        const t = translations[currentLang];
         document.getElementById('introGuides').style.display = 'none';
         document.getElementById('loadDemoBtn').style.display = 'none';
 
         document.getElementById('fileTitle').textContent = selectedFile.name;
         document.getElementById('fileSub').textContent = (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB';
-        log('>> 开始解析文件...');
+        log('>> Processing file...');
 
         try {
             if (selectedFile.name.toLowerCase().endsWith('.dat')) {
@@ -585,42 +688,39 @@ function loadDemoData() {
                 const arrayBuffer = await selectedFile.arrayBuffer();
                 rawLevelDat = new Uint8Array(arrayBuffer);
                 originalBackup = new Uint8Array(rawLevelDat);
-                document.getElementById('backupNoteText').textContent = '💾 修复时自动备份原始 level.dat 为 level.dat.bak';
+                document.getElementById('backupNoteText').textContent = t.backupDatText;
                 parseNBT(rawLevelDat);
             } else {
                 isSingleDat = false;
-                if (typeof JSZip === 'undefined') return alert('JSZip 库未加载，请刷新页面后重试');
+                if (typeof JSZip === 'undefined') return alert('JSZip error. Please refresh.');
                 zipInstance = new JSZip();
                 const zipContent = await zipInstance.loadAsync(selectedFile);
                 targetLevelDatPath = null;
                 zipContent.forEach(path => path.toLowerCase().endsWith('level.dat') && (targetLevelDatPath = path));
-                if (!targetLevelDatPath) return alert('未找到 level.dat！请选择完整存档包（.mcworld / .zip）或单独的 level.dat');
+                if (!targetLevelDatPath) return alert('level.dat not found! Please check your file.');
                 
                 rawLevelDat = await zipContent.file(targetLevelDatPath).async('uint8array');
                 originalBackup = new Uint8Array(rawLevelDat);
-                document.getElementById('backupNoteText').textContent = '💾 修复时自动备份原 level.dat 到压缩包内 level.dat.bak';
+                document.getElementById('backupNoteText').textContent = t.backupZipText;
                 parseNBT(rawLevelDat);
             }
         } catch (err) { 
-            alert('读取失败：' + err.message); 
+            alert('File error: ' + err.message); 
             log('[ERROR] ' + err.message);
-            document.getElementById('info_nbt_status').textContent = '解析异常';
+            document.getElementById('info_nbt_status').textContent = t.nbtError;
             document.getElementById('info_nbt_status').className = 'badge badge-bad';
         }
     });
 
     function parseNBT(buf) {
-        parsedNBT = {};
+        window.parsedNBT_data = {};
+        const parsed = window.parsedNBT_data;
         const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
         
         let offset = 0;
-        if (buf.length > 8 && view.getUint8(8) === TAG_COMPOUND) {
-            offset = 8;
-        }
+        if (buf.length > 8 && view.getUint8(8) === TAG_COMPOUND) offset = 8;
 
-        if (view.getUint8(offset) !== TAG_COMPOUND) {
-            throw new Error('无效 level.dat：根节点非 TAG_Compound');
-        }
+        if (view.getUint8(offset) !== TAG_COMPOUND) throw new Error('Invalid level.dat NBT structure');
         offset++;
 
         const rootNameLen = view.getUint16(offset, true); 
@@ -636,20 +736,20 @@ function loadDemoData() {
             offset += nameLen;
 
             if (tagType === TAG_BYTE) {
-                parsedNBT[name] = view.getInt8(offset++);
-                if (targetKeys.includes(name)) log(`   找到 ${name} = ${parsedNBT[name]}`);
+                parsed[name] = view.getInt8(offset++);
+                if (targetKeys.includes(name)) log(`   Found ${name} = ${parsed[name]}`);
             } else if (tagType === TAG_STRING && name === 'LevelName') {
                 const sLen = view.getUint16(offset, true);
-                parsedNBT[name] = new TextDecoder().decode(buf.subarray(offset + 2, offset + 2 + sLen));
+                parsed[name] = new TextDecoder().decode(buf.subarray(offset + 2, offset + 2 + sLen));
                 offset += 2 + sLen;
             } else if (tagType === TAG_INT && name === 'GameType') {
-                parsedNBT[name] = view.getInt32(offset, true); offset += 4;
+                parsed[name] = view.getInt32(offset, true); offset += 4;
             } else if (tagType === TAG_INT && name === 'Difficulty') {
-                parsedNBT[name] = view.getInt32(offset, true); offset += 4;
+                parsed[name] = view.getInt32(offset, true); offset += 4;
             } else if (tagType === TAG_LONG && name === 'RandomSeed') {
-                parsedNBT[name] = readInt64LE(view, offset).toString(); offset += 8;
+                parsed[name] = readInt64LE(view, offset).toString(); offset += 8;
             } else if (tagType === TAG_LONG && name === 'Time') {
-                parsedNBT[name] = readInt64LE(view, offset); offset += 8;
+                parsed[name] = readInt64LE(view, offset); offset += 8;
             } else {
                 offset += skipTag(tagType, view, offset);
             }
@@ -674,9 +774,7 @@ function loadDemoData() {
                 const subType = view.getUint8(offset);
                 const listLen = view.getInt32(offset + 1, true);
                 let skipped = 5;
-                for (let i = 0; i < listLen; i++) {
-                    skipped += skipTag(subType, view, offset + skipped);
-                }
+                for (let i = 0; i < listLen; i++) skipped += skipTag(subType, view, offset + skipped);
                 return skipped;
             }
             case TAG_COMPOUND: {
@@ -694,101 +792,87 @@ function loadDemoData() {
         }
     }
 
-    function analyzeAndRender() {
+    window.analyzeAndRender = function() {
+        const parsed = window.parsedNBT_data;
+        if (!parsed) return;
+        const t = translations[currentLang];
+
         document.getElementById('infoCard').style.display = 'block';
-        document.getElementById('info_name').textContent = parsedNBT.LevelName || '未知世界';
-        
-        // 1. 游戏模式
-        const gameModes = { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)', 3: '旁观 (Spectator)' };
-        document.getElementById('info_mode').textContent = gameModes[parsedNBT.GameType] ?? `模式 (${parsedNBT.GameType})`;
-        
-        // 2. 难度
-        const difficulties = { 0: '和平 (Peaceful)', 1: '简单 (Easy)', 2: '普通 (Normal)', 3: '困难 (Hard)' };
-        document.getElementById('info_difficulty').textContent = difficulties[parsedNBT.Difficulty] ?? `未知 (${parsedNBT.Difficulty ?? '-'})`;
+        document.getElementById('info_name').textContent = parsed.LevelName || 'Unknown';
+        document.getElementById('info_mode').textContent = t.modes[parsed.GameType] ?? `Mode (${parsed.GameType})`;
+        document.getElementById('info_difficulty').textContent = t.diffs[parsed.Difficulty] ?? `Unknown (${parsed.Difficulty ?? '-'})`;
+        document.getElementById('info_seed').textContent = parsed.RandomSeed || 'Unknown';
 
-        // 3. 种子
-        document.getElementById('info_seed').textContent = parsedNBT.RandomSeed || '未知';
-
-        // 4. 游戏时间/天数
-        if (parsedNBT.Time !== undefined) {
-            const ticks = Number(parsedNBT.Time);
+        if (parsed.Time !== undefined) {
+            const ticks = Number(parsed.Time);
             const minutes = (ticks / 20 / 60).toFixed(1);
             const days = Math.floor(ticks / 24000);
-            document.getElementById('info_time').textContent = `${minutes} 分钟 (第 ${days} 天)`;
+            document.getElementById('info_time').textContent = t.timeFormat(minutes, days);
         } else {
-            document.getElementById('info_time').textContent = '未知';
+            document.getElementById('info_time').textContent = 'N/A';
         }
 
-        // 5. 文件大小
         if (selectedFile) {
             const mb = (selectedFile.size / (1024 * 1024)).toFixed(2);
             document.getElementById('info_size').textContent = `${mb} MB`;
-        }
-
-        // 6. 文件格式
-        if (selectedFile) {
             const ext = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
-            const formatMap = {
-                '.mcworld': '.mcworld (基岩版导出包)',
-                '.zip': '.zip (压缩归档)',
-                '.dat': 'level.dat (原NBT数据文件)'
-            };
-            document.getElementById('info_format').textContent = formatMap[ext] || `${ext} 文件`;
+            document.getElementById('info_format').textContent = `${ext} file`;
+        } else {
+            document.getElementById('info_size').textContent = '0.05 MB';
+            document.getElementById('info_format').textContent = '.mcworld';
         }
 
-        // 7. NBT 状态
-        document.getElementById('info_nbt_status').textContent = '解析成功';
+        document.getElementById('info_nbt_status').textContent = t.nbtNormal;
         document.getElementById('info_nbt_status').className = 'badge badge-good';
 
         document.getElementById('statusCard').style.display = 'block';
         document.getElementById('actionGroup').style.display = 'flex';
-        const needsFix = targetKeys.some(k => parsedNBT[k] === 1) || parsedNBT.GameType !== 0;
+        const needsFix = targetKeys.some(k => parsed[k] === 1) || parsed.GameType !== 0;
         
-        updateBadge('val_creative', parsedNBT.hasBeenLoadedInCreative);
-        updateBadge('val_cheats', parsedNBT.cheatsEnabled);
-        updateBadge('val_commands', parsedNBT.commandsEnabled);
+        updateBadge('val_creative', parsed.hasBeenLoadedInCreative);
+        updateBadge('val_cheats', parsed.cheatsEnabled);
+        updateBadge('val_commands', parsed.commandsEnabled);
 
         const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
         if (needsFix) {
             box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
             text.style.color = '#f0c146';
-            text.textContent = '⚠️ 检测到限制标记或非生存模式！点击修复将自动重置并恢复生存模式。';
+            text.textContent = t.summaryWarn;
             document.getElementById('fixBtn').disabled = false;
         } else {
             box.style.cssText = 'background:rgba(84, 167, 44, 0.1);border:2px solid rgba(84, 167, 44, 0.3)';
             text.style.color = '#89e05a';
-            text.textContent = '✅ 存档状态正常，成就资格完好！';
+            text.textContent = t.summaryOk;
             document.getElementById('fixBtn').disabled = true;
         }
-    }
+    };
 
     function updateBadge(id, val) {
         const el = document.getElementById(id);
-        if (val === 1) { el.textContent = '1 (异常)'; el.className = 'badge badge-bad'; }
-        else if (val === 0) { el.textContent = '0 (正常)'; el.className = 'badge badge-good'; }
-        else { el.textContent = '未找到'; el.className = 'badge'; }
+        const t = translations[currentLang];
+        if (val === 1) { el.textContent = t.badgeAbnormal; el.className = 'badge badge-bad'; }
+        else if (val === 0) { el.textContent = t.badgeNormal; el.className = 'badge badge-good'; }
+        else { el.textContent = t.badgeNotFound; el.className = 'badge'; }
     }
 
-    // ===== 修复并导出 =====
     document.getElementById('fixBtn').addEventListener('click', async () => {
         if (window.isDemoMode) {
-            log('>> [演示模式] 模拟修复逻辑运行中...');
+            log('>> [Demo Mode] Simulating fix logic...');
             log('   ✓ hasBeenLoadedInCreative → 0');
-            log('   ✓ GameType → 0 (生存模式)');
-            log('   ✓ 校验通过');
+            log('   ✓ GameType → 0 (Survival)');
+            log('   ✓ Validation PASSED');
             
-            parsedNBT_demo.hasBeenLoadedInCreative = 0;
-            parsedNBT_demo.cheatsEnabled = 0;
-            parsedNBT_demo.commandsEnabled = 0;
-            parsedNBT_demo.GameType = 0;
-            parsedNBT = parsedNBT_demo;
+            window.parsedNBT_data.hasBeenLoadedInCreative = 0;
+            window.parsedNBT_data.cheatsEnabled = 0;
+            window.parsedNBT_data.commandsEnabled = 0;
+            window.parsedNBT_data.GameType = 0;
             analyzeAndRender();
 
-            log('🎉 [演示完成] 真实模式下此时将自动下载修复好的 .mcworld 文件！');
+            log('🎉 [Demo Completed] In real mode, fixed file will download automatically!');
             return;
         }
 
-        log('>> 开始精准修复...');
+        log('>> Fixing NBT flags...');
         const view = new DataView(rawLevelDat.buffer, rawLevelDat.byteOffset, rawLevelDat.byteLength);
         
         let offset = 0;
@@ -814,7 +898,7 @@ function loadDemoData() {
             } else if (tagType === TAG_INT && name === 'GameType') {
                 if (view.getInt32(offset, true) !== 0) {
                     view.setInt32(offset, 0, true);
-                    log('   ✓ GameType → 0 (强制还原生存模式)');
+                    log('   ✓ GameType → 0 (Restored to Survival)');
                 }
                 offset += 4;
             } else {
@@ -822,7 +906,7 @@ function loadDemoData() {
             }
         }
 
-        log('>> 校验写入结果...');
+        log('>> Verifying integrity...');
         let verifyOff = 0;
         if (rawLevelDat.length > 8 && view.getUint8(8) === TAG_COMPOUND) verifyOff = 8;
         verifyOff++;
@@ -835,7 +919,7 @@ function loadDemoData() {
             const n = new TextDecoder().decode(rawLevelDat.subarray(verifyOff, verifyOff + nl));
             verifyOff += nl;
             if (t === TAG_BYTE && targetKeys.includes(n) && view.getInt8(verifyOff) !== 0) {
-                allOk = false; log(`   ✗ 校验失败：${n} 未归零！`);
+                allOk = false; log(`   ✗ Verification FAILED: ${n} != 0`);
             }
             if (t === TAG_BYTE && targetKeys.includes(n)) {
                 verifyOff++;
@@ -845,31 +929,27 @@ function loadDemoData() {
                 verifyOff += skipTag(t, view, verifyOff);
             }
         }
-        if (!allOk) return alert('校验失败！请重试或联系开发者。');
-        log('   ✓ 校验通过');
+        if (!allOk) return alert('Verification Failed! Please retry.');
+        log('   ✓ Verified OK');
 
         if (isSingleDat) {
-            log('>> 生成修复后的 level.dat ...');
+            log('>> Exporting fixed level.dat ...');
             const blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
             downloadFile(blob, 'level.dat');
-            log('🎉 完成！已下载修复后的 level.dat。');
+            log('🎉 Done! Fixed level.dat downloaded.');
             
-            targetKeys.forEach(k => parsedNBT[k] = 0);
-            parsedNBT.GameType = 0;
+            targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
+            window.parsedNBT_data.GameType = 0;
             analyzeAndRender();
             return;
         }
 
-        log('>> 生成压缩包（含备份 level.dat.bak）...');
+        log('>> Packing archive with level.dat.bak ...');
         const newZip = new JSZip();
         for (let path in zipInstance.files) {
             const f = zipInstance.files[path];
             if (f.dir) continue;
-
-            if (path.toLowerCase().endsWith('level.dat_old')) { 
-                log('   跳过旧备份 level.dat_old'); 
-                continue; 
-            }
+            if (path.toLowerCase().endsWith('level.dat_old')) continue;
 
             if (path === targetLevelDatPath) {
                 newZip.file(path + '.bak', originalBackup);
@@ -885,12 +965,12 @@ function loadDemoData() {
             compression: 'STORE' 
         });
         
-        const outName = '成就修复_' + selectedFile.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
+        const outName = 'Fixed_' + selectedFile.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
         downloadFile(blob, outName);
-        log('🎉 完成！已下载，包内含 level.dat.bak 原始备份。');
+        log('🎉 Success! Fixed .mcworld downloaded.');
 
-        targetKeys.forEach(k => parsedNBT[k] = 0);
-        parsedNBT.GameType = 0;
+        targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
+        window.parsedNBT_data.GameType = 0;
         analyzeAndRender();
     });
 
@@ -911,14 +991,15 @@ function loadDemoData() {
         targetLevelDatPath = null;
         rawLevelDat = null;
         selectedFile = null;
-        parsedNBT = {};
+        window.parsedNBT_data = null;
         originalBackup = null;
         isSingleDat = false;
         window.isDemoMode = false;
 
         fileInput.value = '';
-        document.getElementById('fileTitle').textContent = '点击 或 拖拽文件到此处';
-        document.getElementById('fileSub').textContent = '支持 .mcworld / .zip / level.dat · 基岩版专用';
+        const t = translations[currentLang];
+        document.getElementById('fileTitle').textContent = t.dropTitle;
+        document.getElementById('fileSub').textContent = t.dropSub;
 
         document.getElementById('introGuides').style.display = 'block';
         document.getElementById('loadDemoBtn').style.display = 'inline-block';
@@ -931,6 +1012,9 @@ function loadDemoData() {
         logDiv.textContent = '';
         logDiv.style.display = 'none';
     });
+
+    // 初始化默认语言
+    setLanguage('zh');
 })();
 </script>
 </body>
