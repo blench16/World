@@ -404,56 +404,20 @@
 
         /* ================= 手机/设备横屏适配 (Landscape) ================= */
         @media screen and (orientation: landscape) and (max-height: 520px) {
-            body {
-                padding: 12px 16px;
-            }
-            .container {
-                max-width: 720px; /* 扩展宽屏使用区域 */
-                padding: 16px 20px;
-            }
-            .header {
-                margin-top: 0;
-                margin-bottom: 14px;
-            }
-            .icon-box {
-                width: 42px; height: 42px;
-                font-size: 20px;
-                margin-bottom: 6px;
-            }
+            body { padding: 12px 16px; }
+            .container { max-width: 720px; padding: 16px 20px; }
+            .header { margin-top: 0; margin-bottom: 14px; }
+            .icon-box { width: 42px; height: 42px; font-size: 20px; margin-bottom: 6px; }
             h1 { font-size: 1.15rem; }
             p.desc { font-size: 0.75rem; }
-            
-            .file-dropzone {
-                padding: 18px 12px 14px 12px;
-                margin-bottom: 12px;
-            }
-            .features-grid {
-                margin-bottom: 10px;
-            }
-            .feature-item {
-                padding: 8px 4px;
-            }
-            
-            /* 数据面板改为左右双栏并排 */
-            .cards-wrapper {
-                flex-direction: row;
-                gap: 12px;
-            }
-            .cards-wrapper .card-box {
-                flex: 1;
-                margin-bottom: 0;
-            }
-            .status-item {
-                padding: 6px 0;
-                font-size: 0.75rem;
-            }
-            .btn-group {
-                margin-top: 10px;
-            }
-            button {
-                padding: 8px;
-                font-size: 0.8rem;
-            }
+            .file-dropzone { padding: 18px 12px 14px 12px; margin-bottom: 12px; }
+            .features-grid { margin-bottom: 10px; }
+            .feature-item { padding: 8px 4px; }
+            .cards-wrapper { flex-direction: row; gap: 12px; }
+            .cards-wrapper .card-box { flex: 1; margin-bottom: 0; }
+            .status-item { padding: 6px 0; font-size: 0.75rem; }
+            .btn-group { margin-top: 10px; }
+            button { padding: 8px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -525,7 +489,7 @@
         </div>
     </div>
 
-    <!-- 将数据展现包裹在容器中，横屏时切换为 Flex 左右布局 -->
+    <!-- 数据展现区域 -->
     <div class="cards-wrapper">
         <div class="card-box" id="infoCard">
             <div class="card-title"><span id="infoCardTitle">🗺️ 存档概览信息</span></div>
@@ -615,6 +579,15 @@
 </div>
 
 <script>
+// ================= 辅助：文件大小格式化 =================
+function formatBytes(bytes) {
+    if (bytes === 0 || !bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
 // ================= 主题模式 (系统 / 深色 / 浅色) =================
 const themeSelect = document.getElementById('themeSelect');
 
@@ -666,8 +639,7 @@ bgFileInput.addEventListener('change', (e) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(evt) {
-        const base64 = evt.target.result;
-        setBackground(base64);
+        setBackground(evt.target.result);
     };
     reader.readAsDataURL(file);
 });
@@ -689,7 +661,6 @@ function clearBackground() {
     bgFileInput.value = '';
 }
 
-// 加载历史背景
 (function loadSavedBg() {
     const savedImg = localStorage.getItem('mcsr_custom_bg');
     if (savedImg) setBackground(savedImg);
@@ -779,27 +750,13 @@ function setLanguage(lang) {
     if (langSelect) langSelect.value = lang;
 
     const textMap = {
-        appTitle: t.appTitle,
-        appDesc: t.appDesc,
-        f1_title: t.f1_title,
-        f2_title: t.f2_title,
-        f3_title: t.f3_title,
-        pathTitle: t.pathTitle,
-        faqTitle: t.faqTitle,
-        infoCardTitle: t.infoCardTitle,
-        k_name: t.k_name,
-        k_mode: t.k_mode,
-        k_diff: t.k_diff,
-        k_seed: t.k_seed,
-        k_time: t.k_time,
-        k_size: t.k_size,
-        k_format: t.k_format,
-        k_nbt: t.k_nbt,
-        statusCardTitle: t.statusCardTitle,
-        resetBtn: t.resetBtn,
-        fixBtn: t.fixBtn,
-        loadDemoBtn: t.demoBtn,
-        historyTitle: t.historyTitle
+        appTitle: t.appTitle, appDesc: t.appDesc,
+        f1_title: t.f1_title, f2_title: t.f2_title, f3_title: t.f3_title,
+        pathTitle: t.pathTitle, faqTitle: t.faqTitle, infoCardTitle: t.infoCardTitle,
+        k_name: t.k_name, k_mode: t.k_mode, k_diff: t.k_diff, k_seed: t.k_seed,
+        k_time: t.k_time, k_size: t.k_size, k_format: t.k_format, k_nbt: t.k_nbt,
+        statusCardTitle: t.statusCardTitle, resetBtn: t.resetBtn, fixBtn: t.fixBtn,
+        loadDemoBtn: t.demoBtn, historyTitle: t.historyTitle
     };
 
     for (let id in textMap) {
@@ -863,27 +820,52 @@ function saveHistoryItem(item) {
     renderHistory();
 }
 
+// 彻底重构历史记录渲染函数，采用纯 DOM API 防止任何形式的 XSS 注入
 function renderHistory() {
     const container = document.getElementById('historyContainer');
+    container.textContent = ''; // 清空子节点
+
     const history = getHistory();
     const t = translations[currentLang];
 
     if (history.length === 0) {
-        container.innerHTML = `<div style="text-align: center; color: var(--mono-text-dim); padding: 12px; font-size: 0.72rem;" id="noHistoryText">${t.noHistoryText}</div>`;
+        const noHistDiv = document.createElement('div');
+        noHistDiv.style.cssText = 'text-align: center; color: var(--mono-text-dim); padding: 12px; font-size: 0.72rem;';
+        noHistDiv.id = 'noHistoryText';
+        noHistDiv.textContent = t.noHistoryText;
+        container.appendChild(noHistDiv);
         return;
     }
 
-    container.innerHTML = history.map(item => `
-        <div class="history-item">
-            <div>
-                <div class="history-name" title="${item.worldName}">${item.worldName}</div>
-                <div class="history-time">${item.timestamp} · ${item.fileName}</div>
-            </div>
-            <div>
-                <span class="badge ${item.status === 'Fixed' ? 'badge-good' : 'badge-bad'}">${item.status}</span>
-            </div>
-        </div>
-    `).join('');
+    history.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'history-item';
+
+        const leftBox = document.createElement('div');
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'history-name';
+        nameDiv.title = item.worldName;
+        nameDiv.textContent = item.worldName; // 纯文本赋值，防范属性与标签 XSS
+
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'history-time';
+        timeDiv.textContent = `${item.timestamp} · ${item.fileName}`;
+
+        leftBox.appendChild(nameDiv);
+        leftBox.appendChild(timeDiv);
+
+        const rightBox = document.createElement('div');
+        const badgeSpan = document.createElement('span');
+        badgeSpan.className = `badge ${item.status === 'Fixed' ? 'badge-good' : 'badge-bad'}`;
+        badgeSpan.textContent = item.status;
+
+        rightBox.appendChild(badgeSpan);
+
+        itemDiv.appendChild(leftBox);
+        itemDiv.appendChild(rightBox);
+        container.appendChild(itemDiv);
+    });
 }
 
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
@@ -906,7 +888,7 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     let csv = '\uFEFF';
     csv += 'World Name,File Name,Time,Status,Creative Flag,Cheats Flag\n';
     history.forEach(h => {
-        csv += `"${h.worldName.replace(/"/g, '""')}","${h.fileName}","${h.timestamp}","${h.status}",${h.creative},${h.cheats}\n`;
+        csv += `"${(h.worldName || '').replace(/"/g, '""')}","${h.fileName}","${h.timestamp}","${h.status}",${h.creative},${h.cheats}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     downloadFile(blob, `mcsr_fixer_history_${Date.now()}.csv`);
@@ -916,7 +898,7 @@ function loadDemoData() {
     const t = translations[currentLang];
     document.getElementById('introGuides').style.display = 'none';
     document.getElementById('fileTitle').textContent = t.demoLoadedTitle;
-    document.getElementById('fileSub').textContent = '0.05 MB (Demo Mode)';
+    document.getElementById('fileSub').textContent = '50 KB (Demo Mode)';
     document.getElementById('loadDemoBtn').style.display = 'none';
 
     window.isDemoMode = true;
@@ -977,7 +959,7 @@ function loadDemoData() {
         document.getElementById('loadDemoBtn').style.display = 'none';
 
         document.getElementById('fileTitle').textContent = window.selectedFileObj.name;
-        document.getElementById('fileSub').textContent = (window.selectedFileObj.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('fileSub').textContent = formatBytes(window.selectedFileObj.size);
         log('>> Processing file...');
 
         try {
@@ -996,10 +978,20 @@ function loadDemoData() {
                 zipInstance = new JSZip();
                 const zipContent = await zipInstance.loadAsync(window.selectedFileObj);
                 targetLevelDatPath = null;
-                zipContent.forEach(path => path.toLowerCase().endsWith('level.dat') && (targetLevelDatPath = path));
+
+                // 安全匹配目录与文件
+                zipContent.forEach((path, entry) => {
+                    if (!entry.dir && path.toLowerCase().endsWith('level.dat')) {
+                        targetLevelDatPath = path;
+                    }
+                });
+
                 if (!targetLevelDatPath) return alert('level.dat not found! Please check your file.');
                 
-                rawLevelDat = await zipContent.file(targetLevelDatPath).async('uint8array');
+                const levelDatEntry = zipContent.file(targetLevelDatPath);
+                if (!levelDatEntry) return alert('level.dat entry invalid!');
+
+                rawLevelDat = await levelDatEntry.async('uint8array');
                 originalBackup = new Uint8Array(rawLevelDat);
                 document.getElementById('backupNoteText').textContent = t.backupZipText;
                 parseNBT(rawLevelDat);
@@ -1110,12 +1102,11 @@ function loadDemoData() {
         }
 
         if (window.selectedFileObj) {
-            const mb = (window.selectedFileObj.size / (1024 * 1024)).toFixed(2);
-            document.getElementById('info_size').textContent = `${mb} MB`;
+            document.getElementById('info_size').textContent = formatBytes(window.selectedFileObj.size);
             const ext = window.selectedFileObj.name.substring(window.selectedFileObj.name.lastIndexOf('.')).toLowerCase();
             document.getElementById('info_format').textContent = `${ext} file`;
         } else {
-            document.getElementById('info_size').textContent = '0.05 MB';
+            document.getElementById('info_size').textContent = '50 KB';
             document.getElementById('info_format').textContent = '.mcworld';
         }
 
@@ -1124,6 +1115,8 @@ function loadDemoData() {
 
         document.getElementById('statusCard').style.display = 'block';
         document.getElementById('actionGroup').style.display = 'flex';
+        
+        // 判断是否需要修复：GameType 非 0 (非生存模式) 或限制 Key 触发
         const needsFix = targetKeys.some(k => parsed[k] === 1) || parsed.GameType !== 0;
         
         updateBadge('val_creative', parsed.hasBeenLoadedInCreative);
@@ -1154,15 +1147,6 @@ function loadDemoData() {
 
     document.getElementById('fixBtn').addEventListener('click', async () => {
         const parsed = window.parsedNBT_data;
-        
-        saveHistoryItem({
-            worldName: parsed.LevelName || 'Unknown',
-            fileName: window.selectedFileObj ? window.selectedFileObj.name : 'Demo.mcworld',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'Fixed',
-            creative: parsed.hasBeenLoadedInCreative ?? 0,
-            cheats: parsed.cheatsEnabled ?? 0
-        });
 
         if (window.isDemoMode) {
             log('>> [Demo Mode] Simulating fix logic...');
@@ -1174,8 +1158,17 @@ function loadDemoData() {
             window.parsedNBT_data.cheatsEnabled = 0;
             window.parsedNBT_data.commandsEnabled = 0;
             window.parsedNBT_data.GameType = 0;
-            analyzeAndRender();
 
+            saveHistoryItem({
+                worldName: parsed.LevelName || 'Unknown',
+                fileName: 'Demo.mcworld',
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'Fixed',
+                creative: 1,
+                cheats: 0
+            });
+
+            analyzeAndRender();
             log('🎉 [Demo Completed] In real mode, fixed file will download automatically!');
             return;
         }
@@ -1237,45 +1230,82 @@ function loadDemoData() {
                 verifyOff += skipTag(t, view, verifyOff);
             }
         }
-        if (!allOk) return alert('Verification Failed! Please retry.');
+
+        if (!allOk) {
+            alert('Verification Failed! Please retry.');
+            return;
+        }
         log('   ✓ Verified OK');
 
+        // 单 level.dat 模式直接导出
         if (isSingleDat) {
             log('>> Exporting fixed level.dat ...');
             const blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
             downloadFile(blob, 'level.dat');
             log('🎉 Done! Fixed level.dat downloaded.');
             
+            // 操作成功后写日志并更新 UI
+            saveHistoryItem({
+                worldName: parsed.LevelName || 'Unknown',
+                fileName: window.selectedFileObj.name,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'Fixed',
+                creative: parsed.hasBeenLoadedInCreative ?? 0,
+                cheats: parsed.cheatsEnabled ?? 0
+            });
+
             targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
             window.parsedNBT_data.GameType = 0;
             analyzeAndRender();
             return;
         }
 
+        // Zip 打包导出逻辑（利用 Promise.all 并行解压与填充）
         log('>> Packing archive with level.dat.bak ...');
         const newZip = new JSZip();
-        for (let path in zipInstance.files) {
-            const f = zipInstance.files[path];
-            if (f.dir) continue;
-            if (path.toLowerCase().endsWith('level.dat_old')) continue;
 
-            if (path === targetLevelDatPath) {
-                newZip.file(path + '.bak', originalBackup);
-                newZip.file(path, rawLevelDat);
-            } else {
-                newZip.file(path, await f.async('uint8array'));
+        const zipFilePromises = [];
+        zipInstance.forEach((path, entry) => {
+            if (!entry.dir) {
+                zipFilePromises.push(
+                    entry.async('uint8array').then(data => ({ path, data }))
+                );
             }
-        }
+        });
 
+        const zipFiles = await Promise.all(zipFilePromises);
+
+        zipFiles.forEach(file => {
+            // 完整保留 level.dat_old 备份文件，不静默丢弃
+            if (file.path === targetLevelDatPath) {
+                newZip.file(file.path + '.bak', originalBackup);
+                newZip.file(file.path, rawLevelDat);
+            } else {
+                newZip.file(file.path, file.data);
+            }
+        });
+
+        // 生成最终压缩包（采用默认 DEFLATE 算法压缩）
         const blob = await newZip.generateAsync({ 
             type: 'blob', 
             mimeType: 'application/x-minecraft-world',
-            compression: 'STORE' 
+            compression: 'DEFLATE',
+            compressionOptions: { level: 6 }
         });
         
         const outName = 'Fixed_' + window.selectedFileObj.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
         downloadFile(blob, outName);
         log('🎉 Success! Fixed .mcworld downloaded.');
+
+        // 仅在成功导出后才记录 History Item（确保原子性）
+        saveHistoryItem({
+            worldName: parsed.LevelName || 'Unknown',
+            fileName: window.selectedFileObj.name,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'Fixed',
+            creative: parsed.hasBeenLoadedInCreative ?? 0,
+            cheats: parsed.cheatsEnabled ?? 0
+        });
 
         targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
         window.parsedNBT_data.GameType = 0;
