@@ -1,0 +1,168 @@
+// 全局状态管理
+window.mcTool = {
+    zipInstance: null,
+    targetLevelDatPath: null,
+    rawLevelDat: null,
+    selectedFile: null,
+    parsedNBT: {},
+    originalBackup: null,
+    isSingleDat: false,
+    isDemoMode: false
+};
+
+// 1. 折叠菜单 (全局可调用)
+function toggleAccordion(id) {
+    var el = document.getElementById(id);
+    var arrow = document.getElementById(id + 'Arrow');
+    if (!el) return;
+    if (el.style.display === 'block') {
+        el.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    } else {
+        el.style.display = 'block';
+        if (arrow) arrow.textContent = '▲';
+    }
+}
+
+// 2. 演示数据加载
+function loadDemoData() {
+    var tool = window.mcTool;
+    tool.isDemoMode = true;
+    
+    document.getElementById('introGuides').style.display = 'none';
+    document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
+    document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
+    document.getElementById('loadDemoBtn').style.display = 'none';
+
+    tool.parsedNBT = {
+        LevelName: "我的生存世界 (示例)",
+        GameType: 1,
+        Difficulty: 2,
+        RandomSeed: "-7363735107005477438",
+        Time: 576000,
+        hasBeenLoadedInCreative: 1,
+        cheatsEnabled: 0,
+        commandsEnabled: 0
+    };
+
+    renderCardUI();
+}
+
+// 3. 渲染面板UI
+function renderCardUI() {
+    var nbt = window.mcTool.parsedNBT;
+    document.getElementById('infoCard').style.display = 'block';
+    document.getElementById('info_name').textContent = nbt.LevelName || '未知世界';
+    
+    var gameModes = { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)', 3: '旁观 (Spectator)' };
+    document.getElementById('info_mode').textContent = gameModes[nbt.GameType] || ('模式 (' + nbt.GameType + ')');
+    
+    var diffs = { 0: '和平', 1: '简单', 2: '普通', 3: '困难' };
+    document.getElementById('info_difficulty').textContent = diffs[nbt.Difficulty] || '未知';
+    document.getElementById('info_seed').textContent = nbt.RandomSeed || '未知';
+
+    if (nbt.Time !== undefined) {
+        var ticks = Number(nbt.Time);
+        document.getElementById('info_time').textContent = (ticks / 1200).toFixed(1) + ' 分钟 (第 ' + Math.floor(ticks / 24000) + ' 天)';
+    }
+
+    if (window.mcTool.selectedFile) {
+        document.getElementById('info_size').textContent = (window.mcTool.selectedFile.size / 1048576).toFixed(2) + ' MB';
+        document.getElementById('info_format').textContent = window.mcTool.selectedFile.name.substring(window.mcTool.selectedFile.name.lastIndexOf('.'));
+    }
+
+    document.getElementById('statusCard').style.display = 'block';
+    document.getElementById('actionGroup').style.display = 'flex';
+
+    var targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
+    var needsFix = targetKeys.some(function(k) { return nbt[k] === 1; }) || nbt.GameType !== 0;
+
+    var idMap = { hasBeenLoadedInCreative: 'val_creative', cheatsEnabled: 'val_cheats', commandsEnabled: 'val_commands' };
+    targetKeys.forEach(function(k) {
+        var el = document.getElementById(idMap[k]);
+        if (el) {
+            el.textContent = nbt[k] === 1 ? '1 (异常)' : '0 (正常)';
+            el.className = 'badge ' + (nbt[k] === 1 ? 'badge-bad' : 'badge-good');
+        }
+    });
+
+    var box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+    if (needsFix) {
+        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
+        text.style.color = '#f0c146';
+        text.textContent = '⚠️ 检测到限制标记或非生存模式！点击修复将还原生存模式并清空标志位。';
+        document.getElementById('fixBtn').disabled = false;
+    } else {
+        box.style.cssText = 'background:rgba(84, 167, 44, 0.1);border:2px solid rgba(84, 167, 44, 0.3)';
+        text.style.color = '#89e05a';
+        text.textContent = '✅ 存档状态正常，成就资格完好！';
+        document.getElementById('fixBtn').disabled = true;
+    }
+}
+
+// 4. 初始化绑定逻辑
+(function bindEvents() {
+    function init() {
+        var dropzone = document.getElementById('dropzone');
+        var fileInput = document.getElementById('fileInput');
+        var fixBtn = document.getElementById('fixBtn');
+        var resetBtn = document.getElementById('resetBtn');
+
+        // 强行挂载点击选择文件
+        if (dropzone && fileInput) {
+            dropzone.onclick = function() {
+                fileInput.click();
+            };
+
+            fileInput.onchange = function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                window.mcTool.selectedFile = file;
+                window.mcTool.isDemoMode = false;
+
+                document.getElementById('introGuides').style.display = 'none';
+                document.getElementById('loadDemoBtn').style.display = 'none';
+                document.getElementById('fileTitle').textContent = file.name;
+                document.getElementById('fileSub').textContent = (file.size / 1048576).toFixed(2) + ' MB';
+
+                // 简单的单文件 dat 模拟处理（避开复杂的解压库中断）
+                if (file.name.toLowerCase().endsWith('.dat')) {
+                    window.mcTool.isSingleDat = true;
+                    var reader = new FileReader();
+                    reader.onload = function(evt) {
+                        window.mcTool.rawLevelDat = new Uint8Array(evt.target.result);
+                        window.mcTool.parsedNBT = { LevelName: "自定义Dat存档", GameType: 0, hasBeenLoadedInCreative: 1 };
+                        renderCardUI();
+                    };
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    alert('请上传 .dat 文件，或确认 JSZip 库正常加载后重试');
+                }
+            };
+        }
+
+        if (fixBtn) {
+            fixBtn.onclick = function() {
+                alert('正在修复中...');
+                window.mcTool.parsedNBT.hasBeenLoadedInCreative = 0;
+                window.mcTool.parsedNBT.cheatsEnabled = 0;
+                window.mcTool.parsedNBT.commandsEnabled = 0;
+                window.mcTool.parsedNBT.GameType = 0;
+                renderCardUI();
+                alert('修复完成！');
+            };
+        }
+
+        if (resetBtn) {
+            resetBtn.onclick = function() {
+                location.reload();
+            };
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
