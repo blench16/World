@@ -52,6 +52,7 @@
             padding: 24px 20px;
             image-rendering: pixelated;
         }
+        /* 右上角语言选择器 */
         .lang-select-box {
             position: absolute;
             top: 12px;
@@ -336,6 +337,7 @@
 </head>
 <body>
 <div class="container">
+    <!-- 右上角语言切换组件 -->
     <div class="lang-select-box">
         <select id="langSelect" class="lang-select">
             <option value="zh">简体中文</option>
@@ -469,7 +471,7 @@
 
     <div style="margin-top: 16px; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 2px dashed #444; border-radius: 2px; font-size: 0.7rem; color: #aaa; line-height: 1.5; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 1rem;">💡</span>
-        <span id="tipText"><b>温馨提示：</b>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。</span>
+        <span id="tipText"></span>
     </div>
 
     <div class="footer-info">
@@ -479,7 +481,6 @@
 </div>
 
 <script>
-// ===== 国际化文案字典 (i18n) =====
 const translations = {
     zh: {
         appTitle: "成就资格修复器",
@@ -536,7 +537,7 @@ const translations = {
         k_time: "⏱️ In-Game Time", k_size: "📦 File Size", k_format: "📄 File Format", k_nbt: "✅ NBT Status",
         statusCardTitle: "🔒 Achievement Lock Status",
         resetBtn: "Reset", fixBtn: "Fix & Export World",
-        tipText: "<b>Notice:</b> After fixing, do not enable cheats or switch to creative mode, otherwise achievements will be disabled again.",
+        tipText: "<b>Tips:</b> After re-entering the world, do NOT enable cheats or enter creative mode again, otherwise achievements will be locked once more.",
         footerTag: "Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft",
         
         badgeNormal: "0 (OK)", badgeAbnormal: "1 (Locked)", badgeNotFound: "N/A",
@@ -554,35 +555,62 @@ const translations = {
 };
 
 let currentLang = 'zh';
-let selectedFile = null;
 
 function setLanguage(lang) {
     currentLang = lang;
     const t = translations[lang];
     
-    // 1. 静态 DOM 替换
-    const ids = ['appTitle','appDesc','f1_title','f1_desc','f2_title','f2_desc','f3_title','f3_desc','pathTitle','faqTitle','stepTitle','step1','step2','step3','infoCardTitle','k_name','k_mode','k_diff','k_seed','k_time','k_size','k_format','k_nbt','statusCardTitle','resetBtn','fixBtn'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && t[id]) el.textContent = t[id];
-    });
+    const langSelect = document.getElementById('langSelect');
+    if (langSelect) langSelect.value = lang;
 
-    // 2. 动态更新上传区域元素 (修复漏变动问题)
-    if (!window.parsedNBT_data && !selectedFile) {
-        document.getElementById('fileTitle').textContent = t.dropTitle;
-        document.getElementById('fileSub').textContent = t.dropSub;
-        document.getElementById('loadDemoBtn').textContent = t.demoBtn;
-    } else if (window.isDemoMode) {
-        document.getElementById('fileTitle').textContent = t.demoLoadedTitle;
+    // 基础文本绑定
+    const textMap = {
+        appTitle: t.appTitle,
+        appDesc: t.appDesc,
+        f1_title: t.f1_title,
+        f2_title: t.f2_title,
+        f3_title: t.f3_title,
+        pathTitle: t.pathTitle,
+        faqTitle: t.faqTitle,
+        stepTitle: t.stepTitle,
+        step1: t.step1,
+        step2: t.step2,
+        step3: t.step3,
+        infoCardTitle: t.infoCardTitle,
+        k_name: t.k_name,
+        k_mode: t.k_mode,
+        k_diff: t.k_diff,
+        k_seed: t.k_seed,
+        k_time: t.k_time,
+        k_size: t.k_size,
+        k_format: t.k_format,
+        k_nbt: t.k_nbt,
+        statusCardTitle: t.statusCardTitle,
+        resetBtn: t.resetBtn,
+        fixBtn: t.fixBtn,
+        loadDemoBtn: t.demoBtn
+    };
+
+    for (let id in textMap) {
+        const el = document.getElementById(id);
+        if (el && textMap[id]) el.textContent = textMap[id];
     }
 
-    // 3. 展开卡片与提示更新
+    // 支持 HTML 渲染的文本元素
+    document.getElementById('f1_desc').innerHTML = t.f1_desc;
+    document.getElementById('f2_desc').innerHTML = t.f2_desc;
+    document.getElementById('f3_desc').innerHTML = t.f3_desc;
     document.getElementById('pathGuide').innerHTML = t.pathContent;
     document.getElementById('faqGuide').innerHTML = t.faqContent;
     document.getElementById('tipText').innerHTML = t.tipText;
     document.getElementById('footerTag').innerHTML = t.footerTag;
 
-    // 4. 数据卡片二次渲染
+    // 若未导入文件，更新上传区域文本
+    if (!window.selectedFileObj && !window.isDemoMode) {
+        document.getElementById('fileTitle').textContent = t.dropTitle;
+        document.getElementById('fileSub').textContent = t.dropSub;
+    }
+
     if (window.parsedNBT_data) {
         analyzeAndRender();
     }
@@ -638,6 +666,7 @@ function loadDemoData() {
 (() => {
     let zipInstance = null, targetLevelDatPath = null, rawLevelDat = null;
     let originalBackup = null, isSingleDat = false;
+    window.selectedFileObj = null;
     const targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
 
     const TAG_END = 0, TAG_BYTE = 1, TAG_SHORT = 2, TAG_INT = 3, TAG_LONG = 4;
@@ -668,24 +697,24 @@ function loadDemoData() {
     }
 
     fileInput.addEventListener('change', async e => {
-        selectedFile = e.target.files[0];
-        if (!selectedFile) return;
+        window.selectedFileObj = e.target.files[0];
+        if (!window.selectedFileObj) return;
         window.isDemoMode = false;
         
         const t = translations[currentLang];
         document.getElementById('introGuides').style.display = 'none';
         document.getElementById('loadDemoBtn').style.display = 'none';
 
-        document.getElementById('fileTitle').textContent = selectedFile.name;
-        document.getElementById('fileSub').textContent = (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('fileTitle').textContent = window.selectedFileObj.name;
+        document.getElementById('fileSub').textContent = (window.selectedFileObj.size / 1024 / 1024).toFixed(2) + ' MB';
         log('>> Processing file...');
 
         try {
-            if (selectedFile.name.toLowerCase().endsWith('.dat')) {
+            if (window.selectedFileObj.name.toLowerCase().endsWith('.dat')) {
                 isSingleDat = true;
                 zipInstance = null;
-                targetLevelDatPath = selectedFile.name;
-                const arrayBuffer = await selectedFile.arrayBuffer();
+                targetLevelDatPath = window.selectedFileObj.name;
+                const arrayBuffer = await window.selectedFileObj.arrayBuffer();
                 rawLevelDat = new Uint8Array(arrayBuffer);
                 originalBackup = new Uint8Array(rawLevelDat);
                 document.getElementById('backupNoteText').textContent = t.backupDatText;
@@ -694,7 +723,7 @@ function loadDemoData() {
                 isSingleDat = false;
                 if (typeof JSZip === 'undefined') return alert('JSZip error. Please refresh.');
                 zipInstance = new JSZip();
-                const zipContent = await zipInstance.loadAsync(selectedFile);
+                const zipContent = await zipInstance.loadAsync(window.selectedFileObj);
                 targetLevelDatPath = null;
                 zipContent.forEach(path => path.toLowerCase().endsWith('level.dat') && (targetLevelDatPath = path));
                 if (!targetLevelDatPath) return alert('level.dat not found! Please check your file.');
@@ -812,10 +841,10 @@ function loadDemoData() {
             document.getElementById('info_time').textContent = 'N/A';
         }
 
-        if (selectedFile) {
-            const mb = (selectedFile.size / (1024 * 1024)).toFixed(2);
+        if (window.selectedFileObj) {
+            const mb = (window.selectedFileObj.size / (1024 * 1024)).toFixed(2);
             document.getElementById('info_size').textContent = `${mb} MB`;
-            const ext = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+            const ext = window.selectedFileObj.name.substring(window.selectedFileObj.name.lastIndexOf('.')).toLowerCase();
             document.getElementById('info_format').textContent = `${ext} file`;
         } else {
             document.getElementById('info_size').textContent = '0.05 MB';
@@ -965,7 +994,7 @@ function loadDemoData() {
             compression: 'STORE' 
         });
         
-        const outName = 'Fixed_' + selectedFile.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
+        const outName = 'Fixed_' + window.selectedFileObj.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
         downloadFile(blob, outName);
         log('🎉 Success! Fixed .mcworld downloaded.');
 
@@ -990,7 +1019,7 @@ function loadDemoData() {
         zipInstance = null;
         targetLevelDatPath = null;
         rawLevelDat = null;
-        selectedFile = null;
+        window.selectedFileObj = null;
         window.parsedNBT_data = null;
         originalBackup = null;
         isSingleDat = false;
@@ -1013,8 +1042,9 @@ function loadDemoData() {
         logDiv.style.display = 'none';
     });
 
-    // 初始化默认语言
-    setLanguage('zh');
+    const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    const defaultLang = userLang.startsWith('zh') ? 'zh' : 'en';
+    setLanguage(defaultLang);
 })();
 </script>
 </body>
