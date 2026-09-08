@@ -13,6 +13,6 @@
 4. 将新存档覆盖导入游戏即可。
 ⚠️ 注意事项
 修复后重新进入游戏，切勿再次开启作弊或切换到创造模式，否则成就资格会被游戏重新锁定。
-Created by @KotegawazzZ
+https://x.com/kotegawazzz?s=11
 
 
