@@ -55,7 +55,7 @@
 
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
             background-color: var(--mono-bg);
             color: var(--mono-text);
             margin: 0;
@@ -402,7 +402,7 @@
         }
         .history-time { color: var(--mono-text-dim); font-size: 0.65rem; }
 
-        /* ================= 手机/设备横屏适配 (Landscape) ================= */
+        /* ================= 横屏适配 ================= */
         @media screen and (orientation: landscape) and (max-height: 520px) {
             body { padding: 12px 16px; }
             .container { max-width: 720px; padding: 16px 20px; }
@@ -427,9 +427,9 @@
     <div class="control-box">
         <button class="ctrl-btn" id="bgBtn" title="更换背景图片">背景</button>
         <select id="themeSelect" class="ctrl-select">
-            <option value="system">系统</option>
-            <option value="dark">深色</option>
-            <option value="light">浅色</option>
+            <option value="system" id="opt_sys">系统</option>
+            <option value="dark" id="opt_dark">深色</option>
+            <option value="light" id="opt_light">浅色</option>
         </select>
         <select id="langSelect" class="ctrl-select">
             <option value="zh">简体中文</option>
@@ -669,6 +669,8 @@ function clearBackground() {
 // ================= 多语言定义 =================
 const translations = {
     zh: {
+        bgBtn: "背景",
+        opt_sys: "系统", opt_dark: "深色", opt_light: "浅色",
         appTitle: "成就资格修复器",
         appDesc: "精准NBT解析 · 自动备份 · 极简黑白界面",
         dropTitle: "点击 或 拖拽文件到此处",
@@ -704,6 +706,8 @@ const translations = {
         demoLoadedTitle: "已加载：示例测试存档.mcworld"
     },
     en: {
+        bgBtn: "Background",
+        opt_sys: "System", opt_dark: "Dark", opt_light: "Light",
         appTitle: "Achievement Fixer",
         appDesc: "NBT Parser · Auto Backup · Minimalist Interface",
         dropTitle: "Click or Drag & Drop File Here",
@@ -750,6 +754,7 @@ function setLanguage(lang) {
     if (langSelect) langSelect.value = lang;
 
     const textMap = {
+        bgBtn: t.bgBtn, opt_sys: t.opt_sys, opt_dark: t.opt_dark, opt_light: t.opt_light,
         appTitle: t.appTitle, appDesc: t.appDesc,
         f1_title: t.f1_title, f2_title: t.f2_title, f3_title: t.f3_title,
         pathTitle: t.pathTitle, faqTitle: t.faqTitle, infoCardTitle: t.infoCardTitle,
@@ -820,10 +825,10 @@ function saveHistoryItem(item) {
     renderHistory();
 }
 
-// 彻底重构历史记录渲染函数，采用纯 DOM API 防止任何形式的 XSS 注入
+// 纯 DOM API 渲染修改历史，确保防范 XSS 注入
 function renderHistory() {
     const container = document.getElementById('historyContainer');
-    container.textContent = ''; // 清空子节点
+    container.textContent = ''; 
 
     const history = getHistory();
     const t = translations[currentLang];
@@ -846,7 +851,7 @@ function renderHistory() {
         const nameDiv = document.createElement('div');
         nameDiv.className = 'history-name';
         nameDiv.title = item.worldName;
-        nameDiv.textContent = item.worldName; // 纯文本赋值，防范属性与标签 XSS
+        nameDiv.textContent = item.worldName;
 
         const timeDiv = document.createElement('div');
         timeDiv.className = 'history-time';
@@ -979,7 +984,6 @@ function loadDemoData() {
                 const zipContent = await zipInstance.loadAsync(window.selectedFileObj);
                 targetLevelDatPath = null;
 
-                // 安全匹配目录与文件
                 zipContent.forEach((path, entry) => {
                     if (!entry.dir && path.toLowerCase().endsWith('level.dat')) {
                         targetLevelDatPath = path;
@@ -1116,7 +1120,6 @@ function loadDemoData() {
         document.getElementById('statusCard').style.display = 'block';
         document.getElementById('actionGroup').style.display = 'flex';
         
-        // 判断是否需要修复：GameType 非 0 (非生存模式) 或限制 Key 触发
         const needsFix = targetKeys.some(k => parsed[k] === 1) || parsed.GameType !== 0;
         
         updateBadge('val_creative', parsed.hasBeenLoadedInCreative);
@@ -1237,14 +1240,12 @@ function loadDemoData() {
         }
         log('   ✓ Verified OK');
 
-        // 单 level.dat 模式直接导出
         if (isSingleDat) {
             log('>> Exporting fixed level.dat ...');
             const blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
             downloadFile(blob, 'level.dat');
             log('🎉 Done! Fixed level.dat downloaded.');
             
-            // 操作成功后写日志并更新 UI
             saveHistoryItem({
                 worldName: parsed.LevelName || 'Unknown',
                 fileName: window.selectedFileObj.name,
@@ -1260,7 +1261,6 @@ function loadDemoData() {
             return;
         }
 
-        // Zip 打包导出逻辑（利用 Promise.all 并行解压与填充）
         log('>> Packing archive with level.dat.bak ...');
         const newZip = new JSZip();
 
@@ -1276,7 +1276,6 @@ function loadDemoData() {
         const zipFiles = await Promise.all(zipFilePromises);
 
         zipFiles.forEach(file => {
-            // 完整保留 level.dat_old 备份文件，不静默丢弃
             if (file.path === targetLevelDatPath) {
                 newZip.file(file.path + '.bak', originalBackup);
                 newZip.file(file.path, rawLevelDat);
@@ -1285,7 +1284,6 @@ function loadDemoData() {
             }
         });
 
-        // 生成最终压缩包（采用默认 DEFLATE 算法压缩）
         const blob = await newZip.generateAsync({ 
             type: 'blob', 
             mimeType: 'application/x-minecraft-world',
@@ -1297,7 +1295,6 @@ function loadDemoData() {
         downloadFile(blob, outName);
         log('🎉 Success! Fixed .mcworld downloaded.');
 
-        // 仅在成功导出后才记录 History Item（确保原子性）
         saveHistoryItem({
             worldName: parsed.LevelName || 'Unknown',
             fileName: window.selectedFileObj.name,
