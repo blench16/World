@@ -1,0 +1,252 @@
+/*! JSZip v3.10.1 - Local Bundle & App Logic */
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.JSZip=f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({})});
+
+// 折叠菜单
+function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    const arrow = document.getElementById(id + 'Arrow');
+    if (!el) return;
+    if (el.style.display === 'block') {
+        el.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    } else {
+        el.style.display = 'block';
+        if (arrow) arrow.textContent = '▲';
+    }
+}
+
+// 示例演示
+function loadDemoData() {
+    document.getElementById('introGuides').style.display = 'none';
+    document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
+    document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
+    document.getElementById('loadDemoBtn').style.display = 'none';
+
+    window.isDemoMode = true;
+    window.parsedNBT_demo = {
+        LevelName: "我的生存世界 (示例)",
+        GameType: 1,
+        Difficulty: 2,
+        RandomSeed: "-7363735107005477438",
+        Time: 576000n,
+        hasBeenLoadedInCreative: 1,
+        cheatsEnabled: 0,
+        commandsEnabled: 0
+    };
+
+    document.getElementById('infoCard').style.display = 'block';
+    document.getElementById('info_name').textContent = window.parsedNBT_demo.LevelName;
+    document.getElementById('info_mode').textContent = '创造 (Creative)';
+    document.getElementById('info_difficulty').textContent = '普通 (Normal)';
+    document.getElementById('info_seed').textContent = window.parsedNBT_demo.RandomSeed;
+    document.getElementById('info_time').textContent = '240.0 分钟 (第 24 天)';
+    document.getElementById('info_size').textContent = '0.05 MB';
+    document.getElementById('info_format').textContent = '.mcworld (存档包)';
+    document.getElementById('info_nbt_status').textContent = '解析正常 (演示模式)';
+    document.getElementById('info_nbt_status').className = 'badge badge-good';
+
+    document.getElementById('statusCard').style.display = 'block';
+    document.getElementById('actionGroup').style.display = 'flex';
+
+    document.getElementById('val_creative').textContent = '1 (异常)';
+    document.getElementById('val_creative').className = 'badge badge-bad';
+    document.getElementById('val_cheats').textContent = '0 (正常)';
+    document.getElementById('val_cheats').className = 'badge badge-good';
+    document.getElementById('val_commands').textContent = '0 (正常)';
+    document.getElementById('val_commands').className = 'badge badge-good';
+
+    const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+    box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
+    text.style.color = '#f0c146';
+    text.textContent = '⚠️ [演示模式] 检测到限制标记！点击修复将还原生存模式并清空标志位。';
+    document.getElementById('fixBtn').disabled = false;
+}
+
+// 主逻辑初始化
+document.addEventListener('DOMContentLoaded', () => {
+    let zipInstance = null, targetLevelDatPath = null, rawLevelDat = null, selectedFile = null;
+    let parsedNBT = {}, originalBackup = null, isSingleDat = false;
+    const targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
+
+    const TAG_END = 0, TAG_BYTE = 1, TAG_SHORT = 2, TAG_INT = 3, TAG_LONG = 4;
+    const TAG_FLOAT = 5, TAG_DOUBLE = 6, TAG_BYTE_ARRAY = 7, TAG_STRING = 8;
+    const TAG_LIST = 9, TAG_COMPOUND = 10, TAG_INT_ARRAY = 11, TAG_LONG_ARRAY = 12;
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+
+    if (dropzone && fileInput) {
+        dropzone.addEventListener('click', () => fileInput.click());
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+            dropzone.addEventListener(ev, e => {
+                e.preventDefault(); e.stopPropagation();
+                if (ev === 'dragenter' || ev === 'dragover') dropzone.classList.add('dragover');
+                else dropzone.classList.remove('dragover');
+                if (ev === 'drop' && e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    fileInput.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        fileInput.addEventListener('change', async e => {
+            selectedFile = e.target.files[0];
+            if (!selectedFile) return;
+            window.isDemoMode = false;
+            
+            document.getElementById('introGuides').style.display = 'none';
+            document.getElementById('loadDemoBtn').style.display = 'none';
+            document.getElementById('fileTitle').textContent = selectedFile.name;
+            document.getElementById('fileSub').textContent = (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB';
+
+            try {
+                if (selectedFile.name.toLowerCase().endsWith('.dat')) {
+                    isSingleDat = true;
+                    zipInstance = null;
+                    targetLevelDatPath = selectedFile.name;
+                    const arrayBuffer = await selectedFile.arrayBuffer();
+                    rawLevelDat = new Uint8Array(arrayBuffer);
+                    originalBackup = new Uint8Array(rawLevelDat);
+                    document.getElementById('backupNoteText').textContent = '💾 修复时自动备份原始 level.dat 为 level.dat.bak';
+                    parseNBT(rawLevelDat);
+                } else {
+                    isSingleDat = false;
+                    if (typeof JSZip === 'undefined') return alert('解压组件尚未就绪，请刷新重试');
+                    zipInstance = new JSZip();
+                    const zipContent = await zipInstance.loadAsync(selectedFile);
+                    targetLevelDatPath = null;
+                    zipContent.forEach(path => path.toLowerCase().endsWith('level.dat') && (targetLevelDatPath = path));
+                    if (!targetLevelDatPath) return alert('未找到 level.dat！请选择完整存档包（.mcworld / .zip）');
+                    
+                    rawLevelDat = await zipContent.file(targetLevelDatPath).async('uint8array');
+                    originalBackup = new Uint8Array(rawLevelDat);
+                    document.getElementById('backupNoteText').textContent = '💾 修复时自动备份原 level.dat 到压缩包内 level.dat.bak';
+                    parseNBT(rawLevelDat);
+                }
+            } catch (err) { 
+                alert('解析失败：' + err.message); 
+            }
+        });
+    }
+
+    function parseNBT(buf) {
+        parsedNBT = {};
+        const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+        let offset = (buf.length > 8 && view.getUint8(8) === TAG_COMPOUND) ? 8 : 0;
+        if (view.getUint8(offset) !== TAG_COMPOUND) throw new Error('无效 level.dat 格式');
+        offset++;
+        offset += 2 + view.getUint16(offset, true);
+
+        while (offset < buf.length) {
+            const tagType = view.getUint8(offset++);
+            if (tagType === TAG_END) break;
+            const nameLen = view.getUint16(offset, true); offset += 2;
+            const name = new TextDecoder().decode(buf.subarray(offset, offset + nameLen));
+            offset += nameLen;
+
+            if (tagType === TAG_BYTE) {
+                parsedNBT[name] = view.getInt8(offset++);
+            } else if (tagType === TAG_STRING && name === 'LevelName') {
+                const sLen = view.getUint16(offset, true);
+                parsedNBT[name] = new TextDecoder().decode(buf.subarray(offset + 2, offset + 2 + sLen));
+                offset += 2 + sLen;
+            } else if (tagType === TAG_INT && name === 'GameType') {
+                parsedNBT[name] = view.getInt32(offset, true); offset += 4;
+            } else if (tagType === TAG_INT && name === 'Difficulty') {
+                parsedNBT[name] = view.getInt32(offset, true); offset += 4;
+            } else if (tagType === TAG_LONG && name === 'RandomSeed') {
+                parsedNBT[name] = view.getBigInt64(offset, true).toString(); offset += 8;
+            } else if (tagType === TAG_LONG && name === 'Time') {
+                parsedNBT[name] = view.getBigInt64(offset, true); offset += 8;
+            } else {
+                offset += skipTag(tagType, view, offset);
+            }
+        }
+        analyzeAndRender();
+    }
+
+    function skipTag(type, view, offset) {
+        if (offset >= view.byteLength) return 0;
+        switch (type) {
+            case TAG_BYTE: return 1;
+            case TAG_SHORT: return 2;
+            case TAG_INT: return 4;
+            case TAG_LONG: return 8;
+            case TAG_FLOAT: return 4;
+            case TAG_DOUBLE: return 8;
+            case TAG_BYTE_ARRAY: return 4 + view.getInt32(offset, true);
+            case TAG_STRING: return 2 + view.getUint16(offset, true);
+            case TAG_INT_ARRAY: return 4 + view.getInt32(offset, true) * 4;
+            case TAG_LONG_ARRAY: return 4 + view.getInt32(offset, true) * 8;
+            case TAG_LIST: {
+                const subType = view.getUint8(offset);
+                const listLen = view.getInt32(offset + 1, true);
+                let skipped = 5;
+                for (let i = 0; i < listLen; i++) skipped += skipTag(subType, view, offset + skipped);
+                return skipped;
+            }
+            case TAG_COMPOUND: {
+                let skipped = 0;
+                while (offset + skipped < view.byteLength) {
+                    const subType = view.getUint8(offset + skipped++);
+                    if (subType === TAG_END) break;
+                    const nameLen = view.getUint16(offset + skipped, true);
+                    skipped += 2 + nameLen + skipTag(subType, view, offset + 2 + nameLen);
+                }
+                return skipped;
+            }
+            default: return 0;
+        }
+    }
+
+    function analyzeAndRender() {
+        document.getElementById('infoCard').style.display = 'block';
+        document.getElementById('info_name').textContent = parsedNBT.LevelName || '未知世界';
+        const gameModes = { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)', 3: '旁观 (Spectator)' };
+        document.getElementById('info_mode').textContent = gameModes[parsedNBT.GameType] ?? `模式 (${parsedNBT.GameType})`;
+        const difficulties = { 0: '和平', 1: '简单', 2: '普通', 3: '困难' };
+        document.getElementById('info_difficulty').textContent = difficulties[parsedNBT.Difficulty] ?? '未知';
+        document.getElementById('info_seed').textContent = parsedNBT.RandomSeed || '未知';
+
+        if (parsedNBT.Time !== undefined) {
+            const ticks = Number(parsedNBT.Time);
+            document.getElementById('info_time').textContent = `${(ticks / 1200).toFixed(1)} 分钟 (第 ${Math.floor(ticks / 24000)} 天)`;
+        }
+
+        if (selectedFile) {
+            document.getElementById('info_size').textContent = (selectedFile.size / 1048576).toFixed(2) + ' MB';
+            document.getElementById('info_format').textContent = selectedFile.name.substring(selectedFile.name.lastIndexOf('.'));
+        }
+
+        document.getElementById('statusCard').style.display = 'block';
+        document.getElementById('actionGroup').style.display = 'flex';
+        const needsFix = targetKeys.some(k => parsedNBT[k] === 1) || parsedNBT.GameType !== 0;
+
+        ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'].forEach(k => {
+            const idMap = { hasBeenLoadedInCreative: 'val_creative', cheatsEnabled: 'val_cheats', commandsEnabled: 'val_commands' };
+            const el = document.getElementById(idMap[k]);
+            if (el) {
+                el.textContent = parsedNBT[k] === 1 ? '1 (异常)' : '0 (正常)';
+                el.className = 'badge ' + (parsedNBT[k] === 1 ? 'badge-bad' : 'badge-good');
+            }
+        });
+
+        const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+        if (needsFix) {
+            box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
+            text.style.color = '#f0c146';
+            text.textContent = '⚠️ 检测到限制标记！点击一键修复将恢复生存模式。';
+            document.getElementById('fixBtn').disabled = false;
+        } else {
+            box.style.cssText = 'background:rgba(84, 167, 44, 0.1);border:2px solid rgba(84, 167, 44, 0.3)';
+            text.style.color = '#89e05a';
+            text.textContent = '✅ 存档状态正常！';
+            document.getElementById('fixBtn').disabled = true;
+        }
+    }
+
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => location.reload());
+    }
+});
