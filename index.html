@@ -23,7 +23,7 @@
         }
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         body{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
             background-color: var(--mc-dark);
             background-image: 
                 linear-gradient(rgba(0,0,0,0.53), rgba(0,0,0,0.53)),
@@ -49,6 +49,7 @@
                 8px 8px 0 rgba(0,0,0,0.4);
             border-radius: 4px;
             padding: 24px 20px;
+            image-rendering: pixelated;
         }
         .header{text-align:center;margin-bottom:20px}
         .icon-box{
@@ -62,11 +63,15 @@
                 inset -2px -2px 0 rgba(0,0,0,0.2),
                 4px 4px 0 rgba(0,0,0,0.3);
             margin-bottom:12px;
+            transition: transform 0.2s ease;
         }
+        .icon-box:hover { transform: scale(1.05) rotate(-3deg); }
         h1{
             font-size:1.4rem; font-weight:700;
-            margin:0 0 6px 0; color: #ffffff;
+            margin:0 0 6px 0;
+            color: #ffffff;
             text-shadow: 3px 3px 0 #000000;
+            letter-spacing: 0.5px;
         }
         p.desc{font-size:.85rem;color:var(--mc-text-dim);margin:0;line-height:1.5}
         
@@ -77,8 +82,19 @@
             border-radius: 2px;
             padding: 28px 16px 20px 16px;
             text-align:center; cursor:pointer;
+            transition: all .15s ease;
             margin-bottom:16px;
             box-shadow: inset 0 0 0 2px rgba(84, 167, 44, 0.1);
+        }
+        .file-dropzone:hover {
+            background: rgba(84, 167, 44, 0.08);
+            border-color: #78d648;
+        }
+        .file-dropzone.dragover{
+            background: rgba(84, 167, 44, 0.2);
+            border-color: #a0ff6a;
+            transform: scale(0.98);
+            box-shadow: 0 0 12px rgba(84, 167, 44, 0.4);
         }
         .file-dropzone .title{
             font-size:.95rem; font-weight:600;
@@ -95,7 +111,9 @@
             text-decoration: underline;
             cursor: pointer;
             text-shadow: 1px 1px 0 #000;
+            transition: color 0.15s;
         }
+        .demo-btn-link:hover { color: #fce881; }
         input[type=file]{display:none}
 
         .accordion{
@@ -115,7 +133,9 @@
             justify-content: space-between;
             align-items: center;
             background: rgba(255,255,255,0.03);
+            user-select: none;
         }
+        .accordion-header:hover { background: rgba(255,255,255,0.07); }
         .accordion-content{
             display: none;
             padding: 12px;
@@ -160,6 +180,7 @@
             border-radius: 2px;
             padding:16px;
             margin-bottom:16px;
+            animation:fadeIn .25s ease;
             box-shadow: inset 2px 2px 0 rgba(255,255,255,0.08), inset -2px -2px 0 rgba(0,0,0,0.2);
         }
         .card-title {
@@ -173,6 +194,7 @@
             gap: 6px;
         }
 
+        @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
         .status-item{
             display:flex; justify-content:space-between; align-items:center;
             padding:8px 0;
@@ -181,39 +203,115 @@
         }
         .status-item:last-child{border-bottom:none}
         .key-name{
-            font-family: monospace; color: #cccccc; text-shadow: 1px 1px 0 #000;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #cccccc;
+            text-shadow: 1px 1px 0 #000;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .val-info {
-            font-family: monospace; color: #ffffff; font-weight: bold; text-align: right;
+            font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: right;
         }
         .badge{
-            padding:4px 10px; border-radius: 2px; font-size:.75rem; font-weight:700; border: 2px solid;
+            padding:4px 10px;
+            border-radius: 2px;
+            font-size:.75rem; font-weight:700;
+            letter-spacing:0.3px;
+            border: 2px solid;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
         }
-        .badge-bad{ background: rgba(181, 47, 47, 0.25); color: #ff6b6b; border-color: var(--mc-red); }
-        .badge-good{ background: rgba(84, 167, 44, 0.25); color: #89e05a; border-color: var(--mc-green); }
-        
+        .badge-bad{
+            background: rgba(181, 47, 47, 0.25);
+            color: #ff6b6b;
+            border-color: var(--mc-red);
+        }
+        .badge-good{
+            background: rgba(84, 167, 44, 0.25);
+            color: #89e05a;
+            border-color: var(--mc-green);
+        }
         .summary-box{
-            margin-top:14px; padding:12px; border-radius: 2px; font-size:.8rem; line-height:1.5; border: 2px solid transparent;
+            margin-top:14px; padding:12px;
+            border-radius: 2px;
+            font-size:.8rem; line-height:1.5;
+            display:flex; align-items:center; gap:8px;
+            border: 2px solid transparent;
         }
         .btn-group{display:flex;gap:12px;margin-top:8px}
         button{
-            flex:1; padding:14px; border: 3px solid; border-radius: 2px;
-            font-size:.95rem; font-weight:600; cursor:pointer; font-family:inherit;
+            flex:1; padding:14px; border: 3px solid;
+            border-radius: 2px;
+            font-size:.95rem; font-weight:600;
+            cursor:pointer; transition: all .08s ease;
+            display:inline-flex; justify-content:center; align-items:center; gap:6px;
+            font-family:inherit; touch-action:manipulation;
             text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
             box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), inset -2px -2px 0 rgba(0,0,0,0.2);
         }
-        .btn-primary{ background: linear-gradient(180deg, #62bd37, #4a9128); color: #fff; border-color: #2f5f18; }
-        .btn-primary:disabled{ background: #444; color: #777; border-color: #333; box-shadow: none; cursor:not-allowed; }
-        .btn-cancel{ background: #444; color: var(--mc-text); border-color: #555; }
-        
-        #log{
-            margin-top:16px; padding:12px; background: #0f0f0f; border: 3px solid #333;
-            border-radius: 2px; font-family: monospace; font-size:.75rem; color: #7de07d;
-            max-height:120px; overflow-y:auto; display:none; white-space:pre-wrap; word-break:break-all;
+        .btn-primary{
+            background: linear-gradient(180deg, #62bd37, #4a9128);
+            color: #fff;
+            border-color: #2f5f18;
         }
-        .backup-note{ margin-top:12px; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.08); font-size:.75rem; color:var(--mc-text-dim); }
-        .footer-info { margin-top: 20px; text-align: center; font-size: 0.72rem; color: var(--mc-text-dim); border-top: 2px dashed #444; padding-top: 12px; line-height: 1.6; }
-        .twitter-link { color: #1da1f2; text-decoration: none; font-weight: bold; }
+        .btn-primary:active{
+            transform: translateY(2px);
+            box-shadow: inset -2px -2px 0 rgba(255,255,255,0.1), inset 2px 2px 0 rgba(0,0,0,0.4);
+        }
+        .btn-primary:disabled{
+            background: #444444;
+            color: #777777;
+            border-color: #333333;
+            box-shadow: none;
+            cursor:not-allowed;
+            text-shadow: none;
+            transform: none;
+        }
+        .btn-cancel{
+            background: #444444;
+            color: var(--mc-text);
+            border-color: #555555;
+        }
+        .btn-cancel:active{
+            transform: translateY(2px);
+            box-shadow: inset -2px -2px 0 rgba(255,255,255,0.1), inset 2px 2px 0 rgba(0,0,0,0.4);
+        }
+        #log{
+            margin-top:16px; padding:12px;
+            background: #0f0f0f;
+            border: 3px solid #333;
+            border-radius: 2px;
+            font-family: ui-monospace, SFMono-Regular, monospace;
+            font-size:.75rem; color: #7de07d;
+            max-height:120px; overflow-y:auto;
+            display:none; white-space:pre-wrap; word-break:break-all;
+        }
+        .backup-note{
+            margin-top:12px; padding-top:8px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size:.75rem; color:var(--mc-text-dim);
+        }
+        .footer-info {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--mc-text-dim);
+            border-top: 2px dashed #444;
+            padding-top: 12px;
+            line-height: 1.6;
+        }
+        .twitter-link {
+            color: #1da1f2;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .twitter-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -224,19 +322,32 @@
         <p class="desc">精准NBT解析 · 自动备份 · 像素风界面</p>
     </div>
 
-    <!-- 上传框添加内联 onclick，双重保障唤起文件选择 -->
-    <div class="file-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+    <!-- 上传框 -->
+    <div class="file-dropzone" id="dropzone">
         <div class="title" id="fileTitle">点击 或 拖拽文件到此处</div>
         <div class="subtitle" id="fileSub">支持 .mcworld / .zip / level.dat · 基岩版专用</div>
         <div class="demo-btn-link" id="loadDemoBtn" onclick="event.stopPropagation(); loadDemoData();">🧪 没有存档？点击一键加载示例数据预览</div>
-        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat,application/zip" onchange="handleFileSelect(event)">
+        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat,application/zip">
     </div>
 
+    <!-- 初始说明区域：上传后会自动收起 -->
     <div id="introGuides">
         <div class="features-grid">
-            <div class="feature-item"><div class="f-icon">🔒</div><div class="f-title">纯本地解析</div><div class="f-desc">文件零上传<br>浏览器本地处理</div></div>
-            <div class="feature-item"><div class="f-icon">💾</div><div class="f-title">自动备份</div><div class="f-desc">自动生成原包<br>.dat.bak 备份</div></div>
-            <div class="feature-item"><div class="f-icon">🎯</div><div class="f-title">无损修改</div><div class="f-desc">只清空限制标记<br>不影响建筑物品</div></div>
+            <div class="feature-item">
+                <div class="f-icon">🔒</div>
+                <div class="f-title">纯本地解析</div>
+                <div class="f-desc">文件零上传<br>浏览器本地处理</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-icon">💾</div>
+                <div class="f-title">自动备份</div>
+                <div class="f-desc">自动生成原包<br>.dat.bak 备份</div>
+            </div>
+            <div class="feature-item">
+                <div class="f-icon">🎯</div>
+                <div class="f-title">无损修改</div>
+                <div class="f-desc">只清空限制标记<br>不影响建筑物品</div>
+            </div>
         </div>
 
         <div class="accordion">
@@ -245,9 +356,13 @@
                 <span id="pathGuideArrow">▼</span>
             </div>
             <div class="accordion-content" id="pathGuide">
-                <b>📱 iOS (iPhone/iPad):</b> 打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。<br>
-                <b>🤖 Android:</b> 进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。<br>
-                <b>💻 Windows:</b> 按 <code>Win + R</code> 粘贴路径：<code>%localappdata%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds</code>
+                <b>📱 iOS (iPhone/iPad):</b>
+                打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。
+                <br><b>🤖 Android:</b>
+                进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。（或直接在 MC 游戏内主界面选择导出）
+                <br><b>💻 Windows:</b>
+                按 <code>Win + R</code> 粘贴路径：
+                <code>%localappdata%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds</code>
             </div>
         </div>
 
@@ -257,59 +372,102 @@
                 <span id="faqGuideArrow">▼</span>
             </div>
             <div class="accordion-content" id="faqGuide">
-                <b>1. 修复后进游戏还需要注意什么？</b><br>进游戏后千万不要开启“激活作弊”或切换到“创造模式”，否则游戏会自动再次锁定成就资格。<br><br>
-                <b>2. 为什么修复后导入游戏提示失败？</b><br>如果是手动打包的 .zip，请确认是将存档<b>文件夹内部</b>的文件进行压缩，而不是包了外层文件夹。
+                <b>1. 修复后进游戏还需要注意什么？</b><br>
+                进游戏后千万不要开启“激活作弊”或切换到“创造模式”，否则游戏会自动再次锁定成就资格。<br><br>
+                <b>2. 为什么修复后导入游戏提示失败？</b><br>
+                如果是手动打包的 .zip，请确认是将存档<b>文件夹内部</b>的文件进行压缩，而不是把外层文件夹打了一个“双层包”。
+            </div>
+        </div>
+
+        <div style="margin-top: 12px; background: rgba(0,0,0,0.25); border: 2px solid var(--mc-border); padding: 12px 10px; border-radius: 2px;">
+            <div style="font-size: 0.75rem; font-weight: bold; color: var(--mc-gold); margin-bottom: 8px; text-shadow: 1px 1px 0 #000; text-align: center;">⚡ 三步轻松修复</div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--mc-text-dim); text-align: center;">
+                <div>1. 导入存档/DAT</div>
+                <div style="color: var(--mc-border);">➔</div>
+                <div>2. 自动诊断 NBT</div>
+                <div style="color: var(--mc-border);">➔</div>
+                <div>3. 下载并覆盖</div>
             </div>
         </div>
     </div>
 
-    <!-- 1. 存档概览面板 -->
+    <!-- 1. 存档概览信息面板 -->
     <div class="card-box" id="infoCard">
         <div class="card-title">🗺️ 存档概览信息</div>
-        <div class="status-item"><span class="key-name">🌍 世界名称</span><span id="info_name" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">🎮 游戏模式</span><span id="info_mode" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">🎚️ 难度</span><span id="info_difficulty" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">🌱 地图种子</span><span id="info_seed" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">⏱️ 游戏时间 / 天数</span><span id="info_time" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">📦 存档大小</span><span id="info_size" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">📄 文件格式</span><span id="info_format" class="val-info">-</span></div>
-        <div class="status-item"><span class="key-name">✅ NBT 状态</span><span id="info_nbt_status" class="badge badge-good">解析正常</span></div>
+        <div class="status-item">
+            <span class="key-name">🌍 世界名称</span>
+            <span id="info_name" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">🎮 游戏模式</span>
+            <span id="info_mode" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">🎚️ 难度</span>
+            <span id="info_difficulty" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">🌱 地图种子</span>
+            <span id="info_seed" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">⏱️ 游戏时间 / 天数</span>
+            <span id="info_time" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">📦 存档大小</span>
+            <span id="info_size" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">📄 文件格式</span>
+            <span id="info_format" class="val-info">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">✅ NBT 状态</span>
+            <span id="info_nbt_status" class="badge badge-good">解析正常</span>
+        </div>
     </div>
 
     <!-- 2. 成就限制状态审查面板 -->
     <div class="card-box" id="statusCard">
         <div class="card-title">🔒 成就限制状态</div>
-        <div class="status-item"><span class="key-name">hasBeenLoadedInCreative</span><span id="val_creative" class="badge">-</span></div>
-        <div class="status-item"><span class="key-name">cheatsEnabled</span><span id="val_cheats" class="badge">-</span></div>
-        <div class="status-item"><span class="key-name">commandsEnabled</span><span id="val_commands" class="badge">-</span></div>
+        <div class="status-item">
+            <span class="key-name">hasBeenLoadedInCreative</span>
+            <span id="val_creative" class="badge">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">cheatsEnabled</span>
+            <span id="val_cheats" class="badge">-</span>
+        </div>
+        <div class="status-item">
+            <span class="key-name">commandsEnabled</span>
+            <span id="val_commands" class="badge">-</span>
+        </div>
         <div class="summary-box" id="summaryBox"><span id="summaryText"></span></div>
         <div class="backup-note" id="backupNoteText">💾 修复时自动备份原始数据</div>
     </div>
 
     <div class="btn-group" id="actionGroup" style="display:none;">
-        <button class="btn-cancel" onclick="location.reload()">重置</button>
-        <button class="btn-primary" id="fixBtn" onclick="doFix()">一键修复并导出</button>
+        <button class="btn-cancel" id="resetBtn">重置</button>
+        <button class="btn-primary" id="fixBtn">一键修复并导出</button>
     </div>
     <div id="log"></div>
 
+    <div style="margin-top: 16px; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 2px dashed #444; border-radius: 2px; font-size: 0.7rem; color: #aaa; line-height: 1.5; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 1rem;">💡</span>
+        <span><b>温馨提示：</b>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。</span>
+    </div>
+
     <div class="footer-info">
         Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener" class="twitter-link">@KotegawazzZ</a> 🕊️<br>
-        <span style="opacity: 0.6; font-size:0.65rem;">Minecraft Bedrock NBT Tool · Pure Client-Side Process</span>
+        <span style="opacity: 0.6; font-size:0.65rem;">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>与 Mojang Studios 或 Microsoft 无关</span>
     </div>
 </div>
 
 <script>
-var globalFile = null;
-var zipInstance = null;
-var targetLevelDatPath = null;
-var rawLevelDat = null;
-var originalBackup = null;
-var isSingleDat = false;
-var parsedNBT = {};
-
 function toggleAccordion(id) {
-    var el = document.getElementById(id);
-    var arrow = document.getElementById(id + 'Arrow');
+    const el = document.getElementById(id);
+    const arrow = document.getElementById(id + 'Arrow');
     if (el.style.display === 'block') {
         el.style.display = 'none';
         arrow.textContent = '▼';
@@ -319,22 +477,44 @@ function toggleAccordion(id) {
     }
 }
 
+// 辅助函数：安全读取 64 位小端序长整型，提升移动端浏览器兼容性
+function readInt64LE(view, offset) {
+    const low = view.getUint32(offset, true);
+    const high = view.getInt32(offset + 4, true);
+    if (typeof BigInt !== 'undefined') {
+        return (BigInt(high) << BigInt(32)) | BigInt(low);
+    }
+    return high * 0x100000000 + low;
+}
+
 function loadDemoData() {
-    window.isDemoMode = true;
     document.getElementById('introGuides').style.display = 'none';
     document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
     document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
     document.getElementById('loadDemoBtn').style.display = 'none';
 
+    window.isDemoMode = true;
+    window.parsedNBT_demo = {
+        LevelName: "我的生存世界 (示例)",
+        GameType: 1,
+        Difficulty: 2,
+        RandomSeed: "-7363735107005477438",
+        Time: 576000, // 修复：使用兼容数值表示 24 天
+        hasBeenLoadedInCreative: 1,
+        cheatsEnabled: 0,
+        commandsEnabled: 0
+    };
+
     document.getElementById('infoCard').style.display = 'block';
-    document.getElementById('info_name').textContent = "我的生存世界 (示例)";
+    document.getElementById('info_name').textContent = window.parsedNBT_demo.LevelName;
     document.getElementById('info_mode').textContent = '创造 (Creative)';
     document.getElementById('info_difficulty').textContent = '普通 (Normal)';
-    document.getElementById('info_seed').textContent = "-7363735107005477438";
+    document.getElementById('info_seed').textContent = window.parsedNBT_demo.RandomSeed;
     document.getElementById('info_time').textContent = '240.0 分钟 (第 24 天)';
     document.getElementById('info_size').textContent = '0.05 MB';
     document.getElementById('info_format').textContent = '.mcworld (存档包)';
     document.getElementById('info_nbt_status').textContent = '解析正常 (演示模式)';
+    document.getElementById('info_nbt_status').className = 'badge badge-good';
 
     document.getElementById('statusCard').style.display = 'block';
     document.getElementById('actionGroup').style.display = 'flex';
@@ -346,253 +526,412 @@ function loadDemoData() {
     document.getElementById('val_commands').textContent = '0 (正常)';
     document.getElementById('val_commands').className = 'badge badge-good';
 
-    var box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+    const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
     box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
     text.style.color = '#f0c146';
     text.textContent = '⚠️ [演示模式] 检测到限制标记！点击修复将还原生存模式并清空标志位。';
     document.getElementById('fixBtn').disabled = false;
 }
 
-function handleFileSelect(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    globalFile = file;
-    window.isDemoMode = false;
+(() => {
+    let zipInstance = null, targetLevelDatPath = null, rawLevelDat = null, selectedFile = null;
+    let parsedNBT = {}, originalBackup = null, isSingleDat = false;
+    const targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
 
-    document.getElementById('introGuides').style.display = 'none';
-    document.getElementById('loadDemoBtn').style.display = 'none';
-    document.getElementById('fileTitle').textContent = file.name;
-    document.getElementById('fileSub').textContent = (file.size / 1048576).toFixed(2) + ' MB';
+    const TAG_END = 0, TAG_BYTE = 1, TAG_SHORT = 2, TAG_INT = 3, TAG_LONG = 4;
+    const TAG_FLOAT = 5, TAG_DOUBLE = 6, TAG_BYTE_ARRAY = 7, TAG_STRING = 8;
+    const TAG_LIST = 9, TAG_COMPOUND = 10, TAG_INT_ARRAY = 11, TAG_LONG_ARRAY = 12;
 
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-        var arrayBuffer = evt.target.result;
-        if (file.name.toLowerCase().endsWith('.dat')) {
-            isSingleDat = true;
-            rawLevelDat = new Uint8Array(arrayBuffer);
-            originalBackup = new Uint8Array(rawLevelDat);
-            parseNBT(rawLevelDat);
-        } else {
-            isSingleDat = false;
-            if (typeof JSZip === 'undefined') return alert('JSZip 库未加载，请刷新页面后重试');
-            JSZip.loadAsync(arrayBuffer).then(function(zip) {
-                zipInstance = zip;
-                targetLevelDatPath = null;
-                zip.forEach(function(relativePath) {
-                    if (relativePath.toLowerCase().endsWith('level.dat')) {
-                        targetLevelDatPath = relativePath;
-                    }
-                });
-                if (!targetLevelDatPath) return alert('未找到 level.dat 文件！');
-                return zip.file(targetLevelDatPath).async('uint8array');
-            }).then(function(uint8) {
-                rawLevelDat = uint8;
-                originalBackup = new Uint8Array(rawLevelDat);
-                parseNBT(rawLevelDat);
-            }).catch(function(err) {
-                alert('解析压缩包失败: ' + err.message);
-            });
-        }
-    };
-    reader.readAsArrayBuffer(file);
-}
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
 
-function parseNBT(buf) {
-    parsedNBT = {};
-    var view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
-    var offset = 0;
-    if (buf.length > 8 && view.getUint8(8) === 10) offset = 8;
-    if (view.getUint8(offset) !== 10) return alert('无效的 level.dat：根节点非 Compound');
-    offset++;
-    
-    var rootNameLen = view.getUint16(offset, true); 
-    offset += 2 + rootNameLen;
-
-    while (offset < buf.length) {
-        var tagType = view.getUint8(offset++);
-        if (tagType === 0) break;
-        
-        var nameLen = view.getUint16(offset, true); 
-        offset += 2;
-        var name = "";
-        for (var i = 0; i < nameLen; i++) {
-            name += String.fromCharCode(buf[offset + i]);
-        }
-        offset += nameLen;
-
-        if (tagType === 1) { // TAG_Byte
-            parsedNBT[name] = view.getInt8(offset++);
-        } else if (tagType === 8 && name === 'LevelName') { // TAG_String
-            var sLen = view.getUint16(offset, true);
-            var str = "";
-            for (var j = 0; j < sLen; j++) { str += String.fromCharCode(buf[offset + 2 + j]); }
-            parsedNBT[name] = str;
-            offset += 2 + sLen;
-        } else if (tagType === 3 && (name === 'GameType' || name === 'Difficulty')) { // TAG_Int
-            parsedNBT[name] = view.getInt32(offset, true); 
-            offset += 4;
-        } else if (tagType === 4 && (name === 'RandomSeed' || name === 'Time')) { // TAG_Long (兼容处理，不使用 BigInt)
-            offset += 8;
-        } else {
-            offset += skipTag(tagType, view, offset);
-        }
-    }
-    renderCardUI();
-}
-
-function skipTag(type, view, offset) {
-    if (offset >= view.byteLength) return 0;
-    switch (type) {
-        case 1: return 1;
-        case 2: return 2;
-        case 3: return 4;
-        case 4: return 8;
-        case 5: return 4;
-        case 6: return 8;
-        case 7: return 4 + view.getInt32(offset, true);
-        case 8: return 2 + view.getUint16(offset, true);
-        case 9: {
-            var subType = view.getUint8(offset);
-            var listLen = view.getInt32(offset + 1, true);
-            var skipped = 5;
-            for (var i = 0; i < listLen; i++) { skipped += skipTag(subType, view, offset + skipped); }
-            return skipped;
-        }
-        case 10: {
-            var skipped = 0;
-            while (offset + skipped < view.byteLength) {
-                var subType = view.getUint8(offset + skipped++);
-                if (subType === 0) break;
-                var nameLen = view.getUint16(offset + skipped, true);
-                skipped += 2 + nameLen + skipTag(subType, view, offset + skipped + 2 + nameLen);
+    dropzone.addEventListener('click', () => fileInput.click());
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+        dropzone.addEventListener(ev, e => {
+            e.preventDefault(); e.stopPropagation();
+            if (ev === 'dragenter' || ev === 'dragover') dropzone.classList.add('dragover');
+            else dropzone.classList.remove('dragover');
+            if (ev === 'drop' && e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
             }
-            return skipped;
-        }
-        case 11: return 4 + view.getInt32(offset, true) * 4;
-        case 12: return 4 + view.getInt32(offset, true) * 8;
-        default: return 0;
-    }
-}
+        });
+    });
 
-function renderCardUI() {
-    document.getElementById('infoCard').style.display = 'block';
-    document.getElementById('info_name').textContent = parsedNBT.LevelName || '已识别存档';
-    
-    var gameModes = { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)' };
-    document.getElementById('info_mode').textContent = gameModes[parsedNBT.GameType] || ('模式 (' + parsedNBT.GameType + ')');
-    
-    var diffs = { 0: '和平', 1: '简单', 2: '普通', 3: '困难' };
-    document.getElementById('info_difficulty').textContent = diffs[parsedNBT.Difficulty] || '普通';
-    document.getElementById('info_seed').textContent = '已成功解析';
-    document.getElementById('info_time').textContent = '已读取';
-
-    if (globalFile) {
-        document.getElementById('info_size').textContent = (globalFile.size / 1048576).toFixed(2) + ' MB';
-        document.getElementById('info_format').textContent = globalFile.name.substring(globalFile.name.lastIndexOf('.'));
+    function log(msg) {
+        const logDiv = document.getElementById('log');
+        logDiv.style.display = 'block';
+        logDiv.textContent += msg + '\n';
+        logDiv.scrollTop = logDiv.scrollHeight;
     }
 
-    document.getElementById('statusCard').style.display = 'block';
-    document.getElementById('actionGroup').style.display = 'flex';
+    fileInput.addEventListener('change', async e => {
+        selectedFile = e.target.files[0];
+        if (!selectedFile) return;
+        window.isDemoMode = false;
+        
+        document.getElementById('introGuides').style.display = 'none';
+        document.getElementById('loadDemoBtn').style.display = 'none';
 
-    var targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
-    var needsFix = targetKeys.some(function(k) { return parsedNBT[k] === 1; }) || parsedNBT.GameType !== 0;
+        document.getElementById('fileTitle').textContent = selectedFile.name;
+        document.getElementById('fileSub').textContent = (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB';
+        log('>> 开始解析文件...');
 
-    var idMap = { hasBeenLoadedInCreative: 'val_creative', cheatsEnabled: 'val_cheats', commandsEnabled: 'val_commands' };
-    targetKeys.forEach(function(k) {
-        var el = document.getElementById(idMap[k]);
-        if (el) {
-            el.textContent = parsedNBT[k] === 1 ? '1 (异常)' : '0 (正常)';
-            el.className = 'badge ' + (parsedNBT[k] === 1 ? 'badge-bad' : 'badge-good');
+        try {
+            if (selectedFile.name.toLowerCase().endsWith('.dat')) {
+                isSingleDat = true;
+                zipInstance = null;
+                targetLevelDatPath = selectedFile.name;
+                const arrayBuffer = await selectedFile.arrayBuffer();
+                rawLevelDat = new Uint8Array(arrayBuffer);
+                originalBackup = new Uint8Array(rawLevelDat);
+                document.getElementById('backupNoteText').textContent = '💾 修复时自动备份原始 level.dat 为 level.dat.bak';
+                parseNBT(rawLevelDat);
+            } else {
+                isSingleDat = false;
+                if (typeof JSZip === 'undefined') return alert('JSZip 库未加载，请刷新页面后重试');
+                zipInstance = new JSZip();
+                const zipContent = await zipInstance.loadAsync(selectedFile);
+                targetLevelDatPath = null;
+                zipContent.forEach(path => path.toLowerCase().endsWith('level.dat') && (targetLevelDatPath = path));
+                if (!targetLevelDatPath) return alert('未找到 level.dat！请选择完整存档包（.mcworld / .zip）或单独的 level.dat');
+                
+                rawLevelDat = await zipContent.file(targetLevelDatPath).async('uint8array');
+                originalBackup = new Uint8Array(rawLevelDat);
+                document.getElementById('backupNoteText').textContent = '💾 修复时自动备份原 level.dat 到压缩包内 level.dat.bak';
+                parseNBT(rawLevelDat);
+            }
+        } catch (err) { 
+            alert('读取失败：' + err.message); 
+            log('[ERROR] ' + err.message);
+            document.getElementById('info_nbt_status').textContent = '解析异常';
+            document.getElementById('info_nbt_status').className = 'badge badge-bad';
         }
     });
 
-    var box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
-    if (needsFix) {
-        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
-        text.style.color = '#f0c146';
-        text.textContent = '⚠️ 检测到限制标记或非生存模式！点击修复将还原生存模式并清空标志位。';
-        document.getElementById('fixBtn').disabled = false;
-    } else {
-        box.style.cssText = 'background:rgba(84, 167, 44, 0.1);border:2px solid rgba(84, 167, 44, 0.3)';
-        text.style.color = '#89e05a';
-        text.textContent = '✅ 存档状态正常，成就资格完好！';
-        document.getElementById('fixBtn').disabled = true;
-    }
-}
-
-function doFix() {
-    if (window.isDemoMode) {
-        alert('🎉 [演示模式] 修复成功！');
-        document.getElementById('val_creative').textContent = '0 (正常)';
-        document.getElementById('val_creative').className = 'badge badge-good';
-        return;
-    }
-
-    // 精准将作弊标志与 GameType 写入二进制 buf 归零
-    var view = new DataView(rawLevelDat.buffer, rawLevelDat.byteOffset, rawLevelDat.byteLength);
-    var offset = 0;
-    if (rawLevelDat.length > 8 && view.getUint8(8) === 10) offset = 8;
-    offset++;
-    
-    var rootNameLen = view.getUint16(offset, true); 
-    offset += 2 + rootNameLen;
-
-    var targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
-
-    while (offset < rawLevelDat.length) {
-        var tagType = view.getUint8(offset++);
-        if (tagType === 0) break;
+    function parseNBT(buf) {
+        parsedNBT = {};
+        const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
         
-        var nameLen = view.getUint16(offset, true); offset += 2;
-        var name = "";
-        for (var i = 0; i < nameLen; i++) { name += String.fromCharCode(rawLevelDat[offset + i]); }
-        offset += nameLen;
+        let offset = 0;
+        if (buf.length > 8 && view.getUint8(8) === TAG_COMPOUND) {
+            offset = 8;
+        }
 
-        if (tagType === 1 && targetKeys.indexOf(name) !== -1) {
-            view.setInt8(offset, 0);
-            offset++;
-        } else if (tagType === 3 && name === 'GameType') {
-            view.setInt32(offset, 0, true);
-            offset += 4;
-        } else {
-            offset += skipTag(tagType, view, offset);
+        if (view.getUint8(offset) !== TAG_COMPOUND) {
+            throw new Error('无效 level.dat：根节点非 TAG_Compound');
+        }
+        offset++;
+
+        const rootNameLen = view.getUint16(offset, true); 
+        offset += 2 + rootNameLen;
+
+        while (offset < buf.length) {
+            const tagType = view.getUint8(offset++);
+            if (tagType === TAG_END) break;
+            
+            const nameLen = view.getUint16(offset, true); 
+            offset += 2;
+            const name = new TextDecoder().decode(buf.subarray(offset, offset + nameLen));
+            offset += nameLen;
+
+            if (tagType === TAG_BYTE) {
+                parsedNBT[name] = view.getInt8(offset++);
+                if (targetKeys.includes(name)) log(`   找到 ${name} = ${parsedNBT[name]}`);
+            } else if (tagType === TAG_STRING && name === 'LevelName') {
+                const sLen = view.getUint16(offset, true);
+                parsedNBT[name] = new TextDecoder().decode(buf.subarray(offset + 2, offset + 2 + sLen));
+                offset += 2 + sLen;
+            } else if (tagType === TAG_INT && name === 'GameType') {
+                parsedNBT[name] = view.getInt32(offset, true); offset += 4;
+            } else if (tagType === TAG_INT && name === 'Difficulty') {
+                parsedNBT[name] = view.getInt32(offset, true); offset += 4;
+            } else if (tagType === TAG_LONG && name === 'RandomSeed') {
+                parsedNBT[name] = readInt64LE(view, offset).toString(); offset += 8;
+            } else if (tagType === TAG_LONG && name === 'Time') {
+                parsedNBT[name] = readInt64LE(view, offset); offset += 8;
+            } else {
+                offset += skipTag(tagType, view, offset);
+            }
+        }
+        analyzeAndRender();
+    }
+
+    function skipTag(type, view, offset) {
+        if (offset >= view.byteLength) return 0;
+        switch (type) {
+            case TAG_BYTE: return 1;
+            case TAG_SHORT: return 2;
+            case TAG_INT: return 4;
+            case TAG_LONG: return 8;
+            case TAG_FLOAT: return 4;
+            case TAG_DOUBLE: return 8;
+            case TAG_BYTE_ARRAY: return 4 + view.getInt32(offset, true);
+            case TAG_STRING: return 2 + view.getUint16(offset, true);
+            case TAG_INT_ARRAY: return 4 + view.getInt32(offset, true) * 4;
+            case TAG_LONG_ARRAY: return 4 + view.getInt32(offset, true) * 8;
+            case TAG_LIST: {
+                const subType = view.getUint8(offset);
+                const listLen = view.getInt32(offset + 1, true);
+                let skipped = 5;
+                for (let i = 0; i < listLen; i++) {
+                    skipped += skipTag(subType, view, offset + skipped);
+                }
+                return skipped;
+            }
+            case TAG_COMPOUND: {
+                let skipped = 0;
+                while (offset + skipped < view.byteLength) {
+                    const subType = view.getUint8(offset + skipped++);
+                    if (subType === TAG_END) break;
+                    const nameLen = view.getUint16(offset + skipped, true);
+                    skipped += 2 + nameLen;
+                    skipped += skipTag(subType, view, offset + skipped);
+                }
+                return skipped;
+            }
+            default: return 0;
         }
     }
 
-    if (isSingleDat) {
-        var blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
-        downloadFile(blob, 'level.dat');
-    } else {
-        var newZip = new JSZip();
-        for (var path in zipInstance.files) {
-            var f = zipInstance.files[path];
+    function analyzeAndRender() {
+        document.getElementById('infoCard').style.display = 'block';
+        document.getElementById('info_name').textContent = parsedNBT.LevelName || '未知世界';
+        
+        // 1. 游戏模式
+        const gameModes = { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)', 3: '旁观 (Spectator)' };
+        document.getElementById('info_mode').textContent = gameModes[parsedNBT.GameType] ?? `模式 (${parsedNBT.GameType})`;
+        
+        // 2. 难度
+        const difficulties = { 0: '和平 (Peaceful)', 1: '简单 (Easy)', 2: '普通 (Normal)', 3: '困难 (Hard)' };
+        document.getElementById('info_difficulty').textContent = difficulties[parsedNBT.Difficulty] ?? `未知 (${parsedNBT.Difficulty ?? '-'})`;
+
+        // 3. 种子
+        document.getElementById('info_seed').textContent = parsedNBT.RandomSeed || '未知';
+
+        // 4. 游戏时间/天数
+        if (parsedNBT.Time !== undefined) {
+            const ticks = Number(parsedNBT.Time);
+            const minutes = (ticks / 20 / 60).toFixed(1);
+            const days = Math.floor(ticks / 24000);
+            document.getElementById('info_time').textContent = `${minutes} 分钟 (第 ${days} 天)`;
+        } else {
+            document.getElementById('info_time').textContent = '未知';
+        }
+
+        // 5. 文件大小
+        if (selectedFile) {
+            const mb = (selectedFile.size / (1024 * 1024)).toFixed(2);
+            document.getElementById('info_size').textContent = `${mb} MB`;
+        }
+
+        // 6. 文件格式
+        if (selectedFile) {
+            const ext = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+            const formatMap = {
+                '.mcworld': '.mcworld (基岩版导出包)',
+                '.zip': '.zip (压缩归档)',
+                '.dat': 'level.dat (原NBT数据文件)'
+            };
+            document.getElementById('info_format').textContent = formatMap[ext] || `${ext} 文件`;
+        }
+
+        // 7. NBT 状态
+        document.getElementById('info_nbt_status').textContent = '解析成功';
+        document.getElementById('info_nbt_status').className = 'badge badge-good';
+
+        document.getElementById('statusCard').style.display = 'block';
+        document.getElementById('actionGroup').style.display = 'flex';
+        const needsFix = targetKeys.some(k => parsedNBT[k] === 1) || parsedNBT.GameType !== 0;
+        
+        updateBadge('val_creative', parsedNBT.hasBeenLoadedInCreative);
+        updateBadge('val_cheats', parsedNBT.cheatsEnabled);
+        updateBadge('val_commands', parsedNBT.commandsEnabled);
+
+        const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+        if (needsFix) {
+            box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
+            text.style.color = '#f0c146';
+            text.textContent = '⚠️ 检测到限制标记或非生存模式！点击修复将自动重置并恢复生存模式。';
+            document.getElementById('fixBtn').disabled = false;
+        } else {
+            box.style.cssText = 'background:rgba(84, 167, 44, 0.1);border:2px solid rgba(84, 167, 44, 0.3)';
+            text.style.color = '#89e05a';
+            text.textContent = '✅ 存档状态正常，成就资格完好！';
+            document.getElementById('fixBtn').disabled = true;
+        }
+    }
+
+    function updateBadge(id, val) {
+        const el = document.getElementById(id);
+        if (val === 1) { el.textContent = '1 (异常)'; el.className = 'badge badge-bad'; }
+        else if (val === 0) { el.textContent = '0 (正常)'; el.className = 'badge badge-good'; }
+        else { el.textContent = '未找到'; el.className = 'badge'; }
+    }
+
+    // ===== 修复并导出 =====
+    document.getElementById('fixBtn').addEventListener('click', async () => {
+        if (window.isDemoMode) {
+            log('>> [演示模式] 模拟修复逻辑运行中...');
+            log('   ✓ hasBeenLoadedInCreative → 0');
+            log('   ✓ GameType → 0 (生存模式)');
+            log('   ✓ 校验通过');
+            
+            parsedNBT_demo.hasBeenLoadedInCreative = 0;
+            parsedNBT_demo.cheatsEnabled = 0;
+            parsedNBT_demo.commandsEnabled = 0;
+            parsedNBT_demo.GameType = 0;
+            parsedNBT = parsedNBT_demo;
+            analyzeAndRender();
+
+            log('🎉 [演示完成] 真实模式下此时将自动下载修复好的 .mcworld 文件！');
+            return;
+        }
+
+        log('>> 开始精准修复...');
+        const view = new DataView(rawLevelDat.buffer, rawLevelDat.byteOffset, rawLevelDat.byteLength);
+        
+        let offset = 0;
+        if (rawLevelDat.length > 8 && view.getUint8(8) === TAG_COMPOUND) offset = 8;
+        offset++;
+        
+        const rootNameLen = view.getUint16(offset, true); offset += 2 + rootNameLen;
+
+        while (offset < rawLevelDat.length) {
+            const tagType = view.getUint8(offset++);
+            if (tagType === TAG_END) break;
+            
+            const nameLen = view.getUint16(offset, true); offset += 2;
+            const name = new TextDecoder().decode(rawLevelDat.subarray(offset, offset + nameLen));
+            offset += nameLen;
+
+            if (tagType === TAG_BYTE && targetKeys.includes(name)) {
+                if (view.getInt8(offset) !== 0) {
+                    view.setInt8(offset, 0);
+                    log(`   ✓ ${name} → 0`);
+                }
+                offset++;
+            } else if (tagType === TAG_INT && name === 'GameType') {
+                if (view.getInt32(offset, true) !== 0) {
+                    view.setInt32(offset, 0, true);
+                    log('   ✓ GameType → 0 (强制还原生存模式)');
+                }
+                offset += 4;
+            } else {
+                offset += skipTag(tagType, view, offset);
+            }
+        }
+
+        log('>> 校验写入结果...');
+        let verifyOff = 0;
+        if (rawLevelDat.length > 8 && view.getUint8(8) === TAG_COMPOUND) verifyOff = 8;
+        verifyOff++;
+        const vRootLen = view.getUint16(verifyOff, true); verifyOff += 2 + vRootLen;
+
+        let allOk = true;
+        while (verifyOff < rawLevelDat.length) {
+            const t = view.getUint8(verifyOff++); if (t === TAG_END) break;
+            const nl = view.getUint16(verifyOff, true); verifyOff += 2;
+            const n = new TextDecoder().decode(rawLevelDat.subarray(verifyOff, verifyOff + nl));
+            verifyOff += nl;
+            if (t === TAG_BYTE && targetKeys.includes(n) && view.getInt8(verifyOff) !== 0) {
+                allOk = false; log(`   ✗ 校验失败：${n} 未归零！`);
+            }
+            if (t === TAG_BYTE && targetKeys.includes(n)) {
+                verifyOff++;
+            } else if (t === TAG_INT && n === 'GameType') {
+                verifyOff += 4;
+            } else {
+                verifyOff += skipTag(t, view, verifyOff);
+            }
+        }
+        if (!allOk) return alert('校验失败！请重试或联系开发者。');
+        log('   ✓ 校验通过');
+
+        if (isSingleDat) {
+            log('>> 生成修复后的 level.dat ...');
+            const blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
+            downloadFile(blob, 'level.dat');
+            log('🎉 完成！已下载修复后的 level.dat。');
+            
+            targetKeys.forEach(k => parsedNBT[k] = 0);
+            parsedNBT.GameType = 0;
+            analyzeAndRender();
+            return;
+        }
+
+        log('>> 生成压缩包（含备份 level.dat.bak）...');
+        const newZip = new JSZip();
+        for (let path in zipInstance.files) {
+            const f = zipInstance.files[path];
             if (f.dir) continue;
+
+            if (path.toLowerCase().endsWith('level.dat_old')) { 
+                log('   跳过旧备份 level.dat_old'); 
+                continue; 
+            }
+
             if (path === targetLevelDatPath) {
                 newZip.file(path + '.bak', originalBackup);
                 newZip.file(path, rawLevelDat);
             } else {
-                newZip.file(path, f.async('uint8array'));
+                newZip.file(path, await f.async('uint8array'));
             }
         }
-        newZip.generateAsync({ type: 'blob', mimeType: 'application/x-minecraft-world' }).then(function(blob) {
-            downloadFile(blob, '成就修复_' + globalFile.name);
+
+        const blob = await newZip.generateAsync({ 
+            type: 'blob', 
+            mimeType: 'application/x-minecraft-world',
+            compression: 'STORE' 
         });
+        
+        const outName = '成就修复_' + selectedFile.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
+        downloadFile(blob, outName);
+        log('🎉 完成！已下载，包内含 level.dat.bak 原始备份。');
+
+        targetKeys.forEach(k => parsedNBT[k] = 0);
+        parsedNBT.GameType = 0;
+        analyzeAndRender();
+    });
+
+    function downloadFile(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.rel = 'noopener';
+        document.body.appendChild(a); 
+        a.click(); 
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
     }
 
-    alert('🎉 修复完成！已自动导出修复好的文件。');
-    location.reload();
-}
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        zipInstance = null;
+        targetLevelDatPath = null;
+        rawLevelDat = null;
+        selectedFile = null;
+        parsedNBT = {};
+        originalBackup = null;
+        isSingleDat = false;
+        window.isDemoMode = false;
 
-function downloadFile(blob, filename) {
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
-}
+        fileInput.value = '';
+        document.getElementById('fileTitle').textContent = '点击 或 拖拽文件到此处';
+        document.getElementById('fileSub').textContent = '支持 .mcworld / .zip / level.dat · 基岩版专用';
+
+        document.getElementById('introGuides').style.display = 'block';
+        document.getElementById('loadDemoBtn').style.display = 'inline-block';
+
+        document.getElementById('infoCard').style.display = 'none';
+        document.getElementById('statusCard').style.display = 'none';
+        document.getElementById('actionGroup').style.display = 'none';
+
+        const logDiv = document.getElementById('log');
+        logDiv.textContent = '';
+        logDiv.style.display = 'none';
+    });
+})();
 </script>
 </body>
 </html>
