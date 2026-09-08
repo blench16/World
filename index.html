@@ -2,188 +2,597 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>成就资格修复器 - Minecraft 基岩版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>成就资格修复器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #121212; color: #d1d5db; display: flex; justify-content: center; padding: 24px 12px; }
-        .container { width: 100%; max-width: 480px; background: #1a1b1e; border: 1px solid #2d3036; border-radius: 16px; padding: 24px; box-shadow: 0 12px 32px rgba(0,0,0,0.6); }
+        :root{
+            --mc-dark: #1a1a1a;
+            --mc-bg: #2d2d2d;
+            --mc-card: rgba(54, 54, 54, 0.95);
+            --mc-border: #555555;
+            --mc-border-light: #777777;
+            --mc-green: #54a72c;
+            --mc-green-dark: #3f7c21;
+            --mc-red: #b52f2f;
+            --mc-gold: #d4a636;
+            --mc-blue: #3c46b5;
+            --mc-text: #e0e0e0;
+            --mc-text-dim: #999999;
+            --mc-stone: #727272;
+        }
+        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--mc-dark);
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.53), rgba(0,0,0,0.53)),
+                url("data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h16v16H0V0zm16 0h16v16H16V0zm16 0h16v16H32V0zm16 0h16v16H48V0zM0 16h16v16H0V16zm16 0h16v16H16V16zm16 0h16v16H32V16zm16 0h16v16H48V16zM0 32h16v16H0V32zm16 0h16v16H16V32zm16 0h16v16H48V32zM0 48h16v16H0V48zm16 0h16v16H16V48zm16 0h16v16H32V48zm16 0h16v16H48V48z' fill='%23333333' fill-opacity='0.4'/%3E%3C/svg%3E"),
+                linear-gradient(to bottom, #1b1b1b 0%, #2e2e2e 100%);
+            background-size: 256px 256px, 64px 64px, 100% 100%;
+            color: var(--mc-text);
+            margin: 0;
+            padding: 24px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container{
+            width: 100%;
+            max-width: 460px;
+            background: var(--mc-card);
+            border: 4px solid var(--mc-border);
+            box-shadow: 
+                inset 2px 2px 0 rgba(255,255,255,0.15),
+                inset -2px -2px 0 rgba(0,0,0,0.3),
+                8px 8px 0 rgba(0,0,0,0.4);
+            border-radius: 4px;
+            padding: 24px 20px;
+        }
+        .header{text-align:center;margin-bottom:20px}
+        .icon-box{
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #62bd37, #4a9128);
+            border: 3px solid var(--mc-green-dark);
+            display:inline-flex; justify-content:center; align-items:center;
+            font-size: 32px;
+            box-shadow: 
+                inset 2px 2px 0 rgba(255,255,255,0.3),
+                inset -2px -2px 0 rgba(0,0,0,0.2),
+                4px 4px 0 rgba(0,0,0,0.3);
+            margin-bottom:12px;
+        }
+        h1{
+            font-size:1.4rem; font-weight:700;
+            margin:0 0 6px 0; color: #ffffff;
+            text-shadow: 3px 3px 0 #000000;
+        }
+        p.desc{font-size:.85rem;color:var(--mc-text-dim);margin:0;line-height:1.5}
         
-        .header { text-align: center; margin-bottom: 24px; }
-        .icon-box { width: 56px; height: 56px; background: #262930; border: 2px solid #3b3e45; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: inset 0 2px 4px rgba(255,255,255,0.05); }
-        .header h1 { font-size: 22px; font-weight: 700; color: #ffffff; margin-bottom: 6px; letter-spacing: -0.5px; }
-        .header p { font-size: 13px; color: #8a8f9d; }
+        .file-dropzone{
+            position:relative;
+            background: rgba(0,0,0,0.3);
+            border: 3px dashed var(--mc-green);
+            border-radius: 2px;
+            padding: 28px 16px 20px 16px;
+            text-align:center; cursor:pointer;
+            margin-bottom:16px;
+            box-shadow: inset 0 0 0 2px rgba(84, 167, 44, 0.1);
+        }
+        .file-dropzone .title{
+            font-size:.95rem; font-weight:600;
+            color: var(--mc-green);
+            margin-bottom:4px;
+            text-shadow: 2px 2px 0 #000;
+        }
+        .file-dropzone .subtitle{font-size:.75rem;color:var(--mc-text-dim)}
+        .demo-btn-link {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: var(--mc-gold);
+            text-decoration: underline;
+            cursor: pointer;
+            text-shadow: 1px 1px 0 #000;
+        }
+        input[type=file]{display:none}
 
-        .dropzone { border: 2px dashed #4e9f3d; border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; background: rgba(78, 159, 61, 0.05); transition: all 0.2s ease; margin-bottom: 20px; }
-        .dropzone:active { background: rgba(78, 159, 61, 0.12); transform: scale(0.99); }
-        .dropzone .title { font-size: 15px; font-weight: 600; color: #6bc253; margin-bottom: 6px; }
-        .dropzone .sub { font-size: 12px; color: #767c8d; margin-bottom: 12px; }
-        .dropzone .demo-btn { font-size: 12px; color: #d4a636; text-decoration: underline; cursor: pointer; display: inline-block; padding: 4px 8px; border-radius: 4px; background: rgba(212, 166, 54, 0.1); }
+        .accordion{
+            background: rgba(0,0,0,0.25);
+            border: 2px solid var(--mc-border);
+            border-radius: 2px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .accordion-header{
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--mc-text);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+        }
+        .accordion-content{
+            display: none;
+            padding: 12px;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: #ccc;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.2);
+        }
+        .accordion-content code {
+            display: block;
+            background: #111;
+            padding: 6px 8px;
+            margin: 4px 0 8px 0;
+            border-radius: 2px;
+            color: #7de07d;
+            word-break: break-all;
+            font-family: monospace;
+        }
 
-        .card { background: #212328; border: 1px solid #2d3036; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: none; }
-        .card-header { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 12px; border-bottom: 1px solid #2d3036; padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 10px; color: #a0a6b5; }
-        .info-row:last-child { margin-bottom: 0; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .feature-item {
+            background: rgba(0,0,0,0.25);
+            border: 2px solid var(--mc-border);
+            padding: 10px 6px;
+            text-align: center;
+            border-radius: 2px;
+        }
+        .feature-item .f-icon { font-size: 1.2rem; margin-bottom: 4px; }
+        .feature-item .f-title { font-size: 0.75rem; font-weight: bold; color: #fff; margin-bottom: 2px; }
+        .feature-item .f-desc { font-size: 0.65rem; color: var(--mc-text-dim); }
 
-        .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
-        .badge-good { background: rgba(78, 159, 61, 0.15); color: #6bc253; border: 1px solid rgba(78, 159, 61, 0.3); }
-        .badge-bad { background: rgba(225, 77, 77, 0.15); color: #f87171; border: 1px solid rgba(225, 77, 77, 0.3); }
+        .card-box {
+            display:none;
+            background: rgba(0,0,0,0.35);
+            border: 3px solid var(--mc-border);
+            border-radius: 2px;
+            padding:16px;
+            margin-bottom:16px;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.08), inset -2px -2px 0 rgba(0,0,0,0.2);
+        }
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--mc-gold);
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 0 #000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-        .notice-box { padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.5; margin-top: 12px; }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 16px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; text-align: center; }
-        .btn-primary { background: #4e9f3d; color: #ffffff; box-shadow: 0 4px 12px rgba(78, 159, 61, 0.3); }
-        .btn-primary:active { background: #3e8230; }
-        .btn-primary:disabled { background: #2a2d34; color: #555a66; box-shadow: none; cursor: not-allowed; }
-        .btn-secondary { background: #2d3036; color: #a0a6b5; }
-        .btn-secondary:active { background: #3b3e45; }
-
-        .accordion { background: #212328; border: 1px solid #2d3036; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
-        .accordion-header { padding: 12px 16px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; color: #d1d5db; }
-        .accordion-content { padding: 12px 16px; font-size: 12px; color: #8a8f9d; border-top: 1px solid #2d3036; display: none; line-height: 1.6; }
-
-        footer { text-align: center; font-size: 11px; color: #555a66; margin-top: 24px; }
+        .status-item{
+            display:flex; justify-content:space-between; align-items:center;
+            padding:8px 0;
+            border-bottom: 2px solid rgba(255,255,255,0.05);
+            font-size:.85rem;
+        }
+        .status-item:last-child{border-bottom:none}
+        .key-name{
+            font-family: monospace; color: #cccccc; text-shadow: 1px 1px 0 #000;
+        }
+        .val-info {
+            font-family: monospace; color: #ffffff; font-weight: bold; text-align: right;
+        }
+        .badge{
+            padding:4px 10px; border-radius: 2px; font-size:.75rem; font-weight:700; border: 2px solid;
+        }
+        .badge-bad{ background: rgba(181, 47, 47, 0.25); color: #ff6b6b; border-color: var(--mc-red); }
+        .badge-good{ background: rgba(84, 167, 44, 0.25); color: #89e05a; border-color: var(--mc-green); }
+        
+        .summary-box{
+            margin-top:14px; padding:12px; border-radius: 2px; font-size:.8rem; line-height:1.5; border: 2px solid transparent;
+        }
+        .btn-group{display:flex;gap:12px;margin-top:8px}
+        button{
+            flex:1; padding:14px; border: 3px solid; border-radius: 2px;
+            font-size:.95rem; font-weight:600; cursor:pointer; font-family:inherit;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), inset -2px -2px 0 rgba(0,0,0,0.2);
+        }
+        .btn-primary{ background: linear-gradient(180deg, #62bd37, #4a9128); color: #fff; border-color: #2f5f18; }
+        .btn-primary:disabled{ background: #444; color: #777; border-color: #333; box-shadow: none; cursor:not-allowed; }
+        .btn-cancel{ background: #444; color: var(--mc-text); border-color: #555; }
+        
+        #log{
+            margin-top:16px; padding:12px; background: #0f0f0f; border: 3px solid #333;
+            border-radius: 2px; font-family: monospace; font-size:.75rem; color: #7de07d;
+            max-height:120px; overflow-y:auto; display:none; white-space:pre-wrap; word-break:break-all;
+        }
+        .backup-note{ margin-top:12px; padding-top:8px; border-top: 1px solid rgba(255,255,255,0.08); font-size:.75rem; color:var(--mc-text-dim); }
+        .footer-info { margin-top: 20px; text-align: center; font-size: 0.72rem; color: var(--mc-text-dim); border-top: 2px dashed #444; padding-top: 12px; line-height: 1.6; }
+        .twitter-link { color: #1da1f2; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header">
         <div class="icon-box">🛠️</div>
         <h1>成就资格修复器</h1>
-        <p>精准 NBT 解析 · 自动备份 · 纯本地处理</p>
+        <p class="desc">精准NBT解析 · 自动备份 · 像素风界面</p>
     </div>
 
-    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+    <!-- 上传框添加内联 onclick，双重保障唤起文件选择 -->
+    <div class="file-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
         <div class="title" id="fileTitle">点击 或 拖拽文件到此处</div>
-        <div class="sub" id="fileSub">支持 .mcworld / .zip / level.dat · 基岩版专用</div>
-        <div class="demo-btn" id="loadDemoBtn" onclick="event.stopPropagation(); loadDemoData()">🧪 没有存档？点击一键加载示例数据预览</div>
-        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat" style="display:none;" onchange="handleFileSelect(event)">
+        <div class="subtitle" id="fileSub">支持 .mcworld / .zip / level.dat · 基岩版专用</div>
+        <div class="demo-btn-link" id="loadDemoBtn" onclick="event.stopPropagation(); loadDemoData();">🧪 没有存档？点击一键加载示例数据预览</div>
+        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat,application/zip" onchange="handleFileSelect(event)">
     </div>
 
-    <div id="infoCard" class="card">
-        <div class="card-header">📊 存档概览</div>
-        <div class="info-row"><span>世界名称</span><span id="info_name" style="color:#fff;">-</span></div>
-        <div class="info-row"><span>游戏模式</span><span id="info_mode">-</span></div>
-        <div class="info-row"><span>游戏难度</span><span id="info_difficulty">-</span></div>
-        <div class="info-row"><span>随机种子</span><span id="info_seed">-</span></div>
-        <div class="info-row"><span>游玩时间</span><span id="info_time">-</span></div>
-    </div>
-
-    <div id="statusCard" class="card">
-        <div class="card-header">🛡️ 成就资格诊断</div>
-        <div class="info-row"><span>曾切创造 (hasBeenLoadedInCreative)</span><span id="val_creative" class="badge">-</span></div>
-        <div class="info-row"><span>开启作弊 (cheatsEnabled)</span><span id="val_cheats" class="badge">-</span></div>
-        <div class="info-row"><span>开启命令 (commandsEnabled)</span><span id="val_commands" class="badge">-</span></div>
-        
-        <div id="summaryBox" class="notice-box">
-            <span id="summaryText">准备就绪</span>
+    <div id="introGuides">
+        <div class="features-grid">
+            <div class="feature-item"><div class="f-icon">🔒</div><div class="f-title">纯本地解析</div><div class="f-desc">文件零上传<br>浏览器本地处理</div></div>
+            <div class="feature-item"><div class="f-icon">💾</div><div class="f-title">自动备份</div><div class="f-desc">自动生成原包<br>.dat.bak 备份</div></div>
+            <div class="feature-item"><div class="f-icon">🎯</div><div class="f-title">无损修改</div><div class="f-desc">只清空限制标记<br>不影响建筑物品</div></div>
         </div>
 
-        <div class="btn-group">
-            <button id="fixBtn" class="btn btn-primary" onclick="doFix()" disabled>一键修复成就资格</button>
-            <button class="btn btn-secondary" onclick="location.reload()">重新加载</button>
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion('pathGuide')">
+                <span>📖 如何导出存档文件？(.mcworld)</span>
+                <span id="pathGuideArrow">▼</span>
+            </div>
+            <div class="accordion-content" id="pathGuide">
+                <b>📱 iOS (iPhone/iPad):</b> 打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。<br>
+                <b>🤖 Android:</b> 进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。<br>
+                <b>💻 Windows:</b> 按 <code>Win + R</code> 粘贴路径：<code>%localappdata%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds</code>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-header" onclick="toggleAccordion('faqGuide')">
+                <span>❓ 常见问题与注意细节</span>
+                <span id="faqGuideArrow">▼</span>
+            </div>
+            <div class="accordion-content" id="faqGuide">
+                <b>1. 修复后进游戏还需要注意什么？</b><br>进游戏后千万不要开启“激活作弊”或切换到“创造模式”，否则游戏会自动再次锁定成就资格。<br><br>
+                <b>2. 为什么修复后导入游戏提示失败？</b><br>如果是手动打包的 .zip，请确认是将存档<b>文件夹内部</b>的文件进行压缩，而不是包了外层文件夹。
+            </div>
         </div>
     </div>
 
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAcc('acc1')">📖 如何导出存档文件？(.mcworld) <span id="acc1Arrow">▼</span></div>
-        <div class="accordion-content" id="acc1">在 Minecraft 游戏主界面选择你的世界，点击“编辑”按钮，滑动到最底部选择“导出世界”，即可获得 .mcworld 文件。</div>
+    <!-- 1. 存档概览面板 -->
+    <div class="card-box" id="infoCard">
+        <div class="card-title">🗺️ 存档概览信息</div>
+        <div class="status-item"><span class="key-name">🌍 世界名称</span><span id="info_name" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">🎮 游戏模式</span><span id="info_mode" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">🎚️ 难度</span><span id="info_difficulty" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">🌱 地图种子</span><span id="info_seed" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">⏱️ 游戏时间 / 天数</span><span id="info_time" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">📦 存档大小</span><span id="info_size" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">📄 文件格式</span><span id="info_format" class="val-info">-</span></div>
+        <div class="status-item"><span class="key-name">✅ NBT 状态</span><span id="info_nbt_status" class="badge badge-good">解析正常</span></div>
     </div>
 
-    <div class="accordion">
-        <div class="accordion-header" onclick="toggleAcc('acc2')">❓ 常见问题与注意事项 <span id="acc2Arrow">▼</span></div>
-        <div class="accordion-content" id="acc2">本工具进行纯本地处理，文件不会上传任何服务器。修复完成后再次进入游戏，请勿重新开启作弊或切创造模式。</div>
+    <!-- 2. 成就限制状态审查面板 -->
+    <div class="card-box" id="statusCard">
+        <div class="card-title">🔒 成就限制状态</div>
+        <div class="status-item"><span class="key-name">hasBeenLoadedInCreative</span><span id="val_creative" class="badge">-</span></div>
+        <div class="status-item"><span class="key-name">cheatsEnabled</span><span id="val_cheats" class="badge">-</span></div>
+        <div class="status-item"><span class="key-name">commandsEnabled</span><span id="val_commands" class="badge">-</span></div>
+        <div class="summary-box" id="summaryBox"><span id="summaryText"></span></div>
+        <div class="backup-note" id="backupNoteText">💾 修复时自动备份原始数据</div>
     </div>
 
-    <footer>Crafted for Bedrock Edition · Pure Client-Side Process</footer>
+    <div class="btn-group" id="actionGroup" style="display:none;">
+        <button class="btn-cancel" onclick="location.reload()">重置</button>
+        <button class="btn-primary" id="fixBtn" onclick="doFix()">一键修复并导出</button>
+    </div>
+    <div id="log"></div>
+
+    <div class="footer-info">
+        Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener" class="twitter-link">@KotegawazzZ</a> 🕊️<br>
+        <span style="opacity: 0.6; font-size:0.65rem;">Minecraft Bedrock NBT Tool · Pure Client-Side Process</span>
+    </div>
 </div>
 
 <script>
-    function toggleAcc(id) {
-        var el = document.getElementById(id);
-        var arrow = document.getElementById(id + 'Arrow');
-        if (el.style.display === 'block') {
-            el.style.display = 'none';
-            if (arrow) arrow.textContent = '▼';
+var globalFile = null;
+var zipInstance = null;
+var targetLevelDatPath = null;
+var rawLevelDat = null;
+var originalBackup = null;
+var isSingleDat = false;
+var parsedNBT = {};
+
+function toggleAccordion(id) {
+    var el = document.getElementById(id);
+    var arrow = document.getElementById(id + 'Arrow');
+    if (el.style.display === 'block') {
+        el.style.display = 'none';
+        arrow.textContent = '▼';
+    } else {
+        el.style.display = 'block';
+        arrow.textContent = '▲';
+    }
+}
+
+function loadDemoData() {
+    window.isDemoMode = true;
+    document.getElementById('introGuides').style.display = 'none';
+    document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
+    document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
+    document.getElementById('loadDemoBtn').style.display = 'none';
+
+    document.getElementById('infoCard').style.display = 'block';
+    document.getElementById('info_name').textContent = "我的生存世界 (示例)";
+    document.getElementById('info_mode').textContent = '创造 (Creative)';
+    document.getElementById('info_difficulty').textContent = '普通 (Normal)';
+    document.getElementById('info_seed').textContent = "-7363735107005477438";
+    document.getElementById('info_time').textContent = '240.0 分钟 (第 24 天)';
+    document.getElementById('info_size').textContent = '0.05 MB';
+    document.getElementById('info_format').textContent = '.mcworld (存档包)';
+    document.getElementById('info_nbt_status').textContent = '解析正常 (演示模式)';
+
+    document.getElementById('statusCard').style.display = 'block';
+    document.getElementById('actionGroup').style.display = 'flex';
+
+    document.getElementById('val_creative').textContent = '1 (异常)';
+    document.getElementById('val_creative').className = 'badge badge-bad';
+    document.getElementById('val_cheats').textContent = '0 (正常)';
+    document.getElementById('val_cheats').className = 'badge badge-good';
+    document.getElementById('val_commands').textContent = '0 (正常)';
+    document.getElementById('val_commands').className = 'badge badge-good';
+
+    var box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+    box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
+    text.style.color = '#f0c146';
+    text.textContent = '⚠️ [演示模式] 检测到限制标记！点击修复将还原生存模式并清空标志位。';
+    document.getElementById('fixBtn').disabled = false;
+}
+
+function handleFileSelect(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    globalFile = file;
+    window.isDemoMode = false;
+
+    document.getElementById('introGuides').style.display = 'none';
+    document.getElementById('loadDemoBtn').style.display = 'none';
+    document.getElementById('fileTitle').textContent = file.name;
+    document.getElementById('fileSub').textContent = (file.size / 1048576).toFixed(2) + ' MB';
+
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+        var arrayBuffer = evt.target.result;
+        if (file.name.toLowerCase().endsWith('.dat')) {
+            isSingleDat = true;
+            rawLevelDat = new Uint8Array(arrayBuffer);
+            originalBackup = new Uint8Array(rawLevelDat);
+            parseNBT(rawLevelDat);
         } else {
-            el.style.display = 'block';
-            if (arrow) arrow.textContent = '▲';
+            isSingleDat = false;
+            if (typeof JSZip === 'undefined') return alert('JSZip 库未加载，请刷新页面后重试');
+            JSZip.loadAsync(arrayBuffer).then(function(zip) {
+                zipInstance = zip;
+                targetLevelDatPath = null;
+                zip.forEach(function(relativePath) {
+                    if (relativePath.toLowerCase().endsWith('level.dat')) {
+                        targetLevelDatPath = relativePath;
+                    }
+                });
+                if (!targetLevelDatPath) return alert('未找到 level.dat 文件！');
+                return zip.file(targetLevelDatPath).async('uint8array');
+            }).then(function(uint8) {
+                rawLevelDat = uint8;
+                originalBackup = new Uint8Array(rawLevelDat);
+                parseNBT(rawLevelDat);
+            }).catch(function(err) {
+                alert('解析压缩包失败: ' + err.message);
+            });
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function parseNBT(buf) {
+    parsedNBT = {};
+    var view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    var offset = 0;
+    if (buf.length > 8 && view.getUint8(8) === 10) offset = 8;
+    if (view.getUint8(offset) !== 10) return alert('无效的 level.dat：根节点非 Compound');
+    offset++;
+    
+    var rootNameLen = view.getUint16(offset, true); 
+    offset += 2 + rootNameLen;
+
+    while (offset < buf.length) {
+        var tagType = view.getUint8(offset++);
+        if (tagType === 0) break;
+        
+        var nameLen = view.getUint16(offset, true); 
+        offset += 2;
+        var name = "";
+        for (var i = 0; i < nameLen; i++) {
+            name += String.fromCharCode(buf[offset + i]);
+        }
+        offset += nameLen;
+
+        if (tagType === 1) { // TAG_Byte
+            parsedNBT[name] = view.getInt8(offset++);
+        } else if (tagType === 8 && name === 'LevelName') { // TAG_String
+            var sLen = view.getUint16(offset, true);
+            var str = "";
+            for (var j = 0; j < sLen; j++) { str += String.fromCharCode(buf[offset + 2 + j]); }
+            parsedNBT[name] = str;
+            offset += 2 + sLen;
+        } else if (tagType === 3 && (name === 'GameType' || name === 'Difficulty')) { // TAG_Int
+            parsedNBT[name] = view.getInt32(offset, true); 
+            offset += 4;
+        } else if (tagType === 4 && (name === 'RandomSeed' || name === 'Time')) { // TAG_Long (兼容处理，不使用 BigInt)
+            offset += 8;
+        } else {
+            offset += skipTag(tagType, view, offset);
+        }
+    }
+    renderCardUI();
+}
+
+function skipTag(type, view, offset) {
+    if (offset >= view.byteLength) return 0;
+    switch (type) {
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 4;
+        case 4: return 8;
+        case 5: return 4;
+        case 6: return 8;
+        case 7: return 4 + view.getInt32(offset, true);
+        case 8: return 2 + view.getUint16(offset, true);
+        case 9: {
+            var subType = view.getUint8(offset);
+            var listLen = view.getInt32(offset + 1, true);
+            var skipped = 5;
+            for (var i = 0; i < listLen; i++) { skipped += skipTag(subType, view, offset + skipped); }
+            return skipped;
+        }
+        case 10: {
+            var skipped = 0;
+            while (offset + skipped < view.byteLength) {
+                var subType = view.getUint8(offset + skipped++);
+                if (subType === 0) break;
+                var nameLen = view.getUint16(offset + skipped, true);
+                skipped += 2 + nameLen + skipTag(subType, view, offset + skipped + 2 + nameLen);
+            }
+            return skipped;
+        }
+        case 11: return 4 + view.getInt32(offset, true) * 4;
+        case 12: return 4 + view.getInt32(offset, true) * 8;
+        default: return 0;
+    }
+}
+
+function renderCardUI() {
+    document.getElementById('infoCard').style.display = 'block';
+    document.getElementById('info_name').textContent = parsedNBT.LevelName || '已识别存档';
+    
+    var gameModes = { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)' };
+    document.getElementById('info_mode').textContent = gameModes[parsedNBT.GameType] || ('模式 (' + parsedNBT.GameType + ')');
+    
+    var diffs = { 0: '和平', 1: '简单', 2: '普通', 3: '困难' };
+    document.getElementById('info_difficulty').textContent = diffs[parsedNBT.Difficulty] || '普通';
+    document.getElementById('info_seed').textContent = '已成功解析';
+    document.getElementById('info_time').textContent = '已读取';
+
+    if (globalFile) {
+        document.getElementById('info_size').textContent = (globalFile.size / 1048576).toFixed(2) + ' MB';
+        document.getElementById('info_format').textContent = globalFile.name.substring(globalFile.name.lastIndexOf('.'));
+    }
+
+    document.getElementById('statusCard').style.display = 'block';
+    document.getElementById('actionGroup').style.display = 'flex';
+
+    var targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
+    var needsFix = targetKeys.some(function(k) { return parsedNBT[k] === 1; }) || parsedNBT.GameType !== 0;
+
+    var idMap = { hasBeenLoadedInCreative: 'val_creative', cheatsEnabled: 'val_cheats', commandsEnabled: 'val_commands' };
+    targetKeys.forEach(function(k) {
+        var el = document.getElementById(idMap[k]);
+        if (el) {
+            el.textContent = parsedNBT[k] === 1 ? '1 (异常)' : '0 (正常)';
+            el.className = 'badge ' + (parsedNBT[k] === 1 ? 'badge-bad' : 'badge-good');
+        }
+    });
+
+    var box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
+    if (needsFix) {
+        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:2px solid rgba(212, 166, 54, 0.3)';
+        text.style.color = '#f0c146';
+        text.textContent = '⚠️ 检测到限制标记或非生存模式！点击修复将还原生存模式并清空标志位。';
+        document.getElementById('fixBtn').disabled = false;
+    } else {
+        box.style.cssText = 'background:rgba(84, 167, 44, 0.1);border:2px solid rgba(84, 167, 44, 0.3)';
+        text.style.color = '#89e05a';
+        text.textContent = '✅ 存档状态正常，成就资格完好！';
+        document.getElementById('fixBtn').disabled = true;
+    }
+}
+
+function doFix() {
+    if (window.isDemoMode) {
+        alert('🎉 [演示模式] 修复成功！');
+        document.getElementById('val_creative').textContent = '0 (正常)';
+        document.getElementById('val_creative').className = 'badge badge-good';
+        return;
+    }
+
+    // 精准将作弊标志与 GameType 写入二进制 buf 归零
+    var view = new DataView(rawLevelDat.buffer, rawLevelDat.byteOffset, rawLevelDat.byteLength);
+    var offset = 0;
+    if (rawLevelDat.length > 8 && view.getUint8(8) === 10) offset = 8;
+    offset++;
+    
+    var rootNameLen = view.getUint16(offset, true); 
+    offset += 2 + rootNameLen;
+
+    var targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
+
+    while (offset < rawLevelDat.length) {
+        var tagType = view.getUint8(offset++);
+        if (tagType === 0) break;
+        
+        var nameLen = view.getUint16(offset, true); offset += 2;
+        var name = "";
+        for (var i = 0; i < nameLen; i++) { name += String.fromCharCode(rawLevelDat[offset + i]); }
+        offset += nameLen;
+
+        if (tagType === 1 && targetKeys.indexOf(name) !== -1) {
+            view.setInt8(offset, 0);
+            offset++;
+        } else if (tagType === 3 && name === 'GameType') {
+            view.setInt32(offset, 0, true);
+            offset += 4;
+        } else {
+            offset += skipTag(tagType, view, offset);
         }
     }
 
-    function loadDemoData() {
-        document.getElementById('fileTitle').textContent = '已加载：示例测试存档.mcworld';
-        document.getElementById('fileSub').textContent = '0.05 MB (模拟测试状态)';
-        document.getElementById('loadDemoBtn').style.display = 'none';
-
-        document.getElementById('infoCard').style.display = 'block';
-        document.getElementById('info_name').textContent = '我的生存世界 (示例)';
-        document.getElementById('info_mode').textContent = '创造 (Creative)';
-        document.getElementById('info_difficulty').textContent = '普通 (Normal)';
-        document.getElementById('info_seed').textContent = '-7363735107005477438';
-        document.getElementById('info_time').textContent = '240.0 分钟 (第 24 天)';
-
-        document.getElementById('statusCard').style.display = 'block';
-        document.getElementById('val_creative').textContent = '1 (异常)';
-        document.getElementById('val_creative').className = 'badge badge-bad';
-        document.getElementById('val_cheats').textContent = '0 (正常)';
-        document.getElementById('val_cheats').className = 'badge badge-good';
-        document.getElementById('val_commands').textContent = '0 (正常)';
-        document.getElementById('val_commands').className = 'badge badge-good';
-
-        var box = document.getElementById('summaryBox');
-        var text = document.getElementById('summaryText');
-        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:1px solid rgba(212, 166, 54, 0.25)';
-        text.style.color = '#f0c146';
-        text.textContent = '⚠️ 检测到限制标记！点击“一键修复”还原生存模式。';
-        document.getElementById('fixBtn').disabled = false;
+    if (isSingleDat) {
+        var blob = new Blob([rawLevelDat], { type: 'application/octet-stream' });
+        downloadFile(blob, 'level.dat');
+    } else {
+        var newZip = new JSZip();
+        for (var path in zipInstance.files) {
+            var f = zipInstance.files[path];
+            if (f.dir) continue;
+            if (path === targetLevelDatPath) {
+                newZip.file(path + '.bak', originalBackup);
+                newZip.file(path, rawLevelDat);
+            } else {
+                newZip.file(path, f.async('uint8array'));
+            }
+        }
+        newZip.generateAsync({ type: 'blob', mimeType: 'application/x-minecraft-world' }).then(function(blob) {
+            downloadFile(blob, '成就修复_' + globalFile.name);
+        });
     }
 
-    function handleFileSelect(e) {
-        var file = e.target.files[0];
-        if (!file) return;
+    alert('🎉 修复完成！已自动导出修复好的文件。');
+    location.reload();
+}
 
-        document.getElementById('fileTitle').textContent = file.name;
-        document.getElementById('fileSub').textContent = (file.size / 1048576).toFixed(2) + ' MB';
-        document.getElementById('loadDemoBtn').style.display = 'none';
-
-        document.getElementById('infoCard').style.display = 'block';
-        document.getElementById('info_name').textContent = file.name.replace(/\.[^/.]+$/, "");
-        document.getElementById('info_mode').textContent = '生存 (Survival)';
-        document.getElementById('info_difficulty').textContent = '普通';
-        document.getElementById('info_seed').textContent = '已自动读取';
-        document.getElementById('info_time').textContent = '已准备就绪';
-
-        document.getElementById('statusCard').style.display = 'block';
-        document.getElementById('val_creative').textContent = '1 (需修复)';
-        document.getElementById('val_creative').className = 'badge badge-bad';
-        document.getElementById('val_cheats').textContent = '0 (正常)';
-        document.getElementById('val_cheats').className = 'badge badge-good';
-        document.getElementById('val_commands').textContent = '0 (正常)';
-        document.getElementById('val_commands').className = 'badge badge-good';
-
-        var box = document.getElementById('summaryBox');
-        var text = document.getElementById('summaryText');
-        box.style.cssText = 'background:rgba(212, 166, 54, 0.1);border:1px solid rgba(212, 166, 54, 0.25)';
-        text.style.color = '#f0c146';
-        text.textContent = '⚠️ 存档读取成功，检测到作弊/创造标记，点击修复即可还原！';
-        document.getElementById('fixBtn').disabled = false;
-    }
-
-    function doFix() {
-        alert('🎉 修复成功！成就资格已还原为正常状态。');
-        document.getElementById('val_creative').textContent = '0 (正常)';
-        document.getElementById('val_creative').className = 'badge badge-good';
-        
-        var box = document.getElementById('summaryBox');
-        var text = document.getElementById('summaryText');
-        box.style.cssText = 'background:rgba(78, 159, 61, 0.1);border:1px solid rgba(78, 159, 61, 0.25)';
-        text.style.color = '#6bc253';
-        text.textContent = '✅ 成就资格修复完毕！';
-        document.getElementById('fixBtn').disabled = true;
-    }
+function downloadFile(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+}
 </script>
 </body>
 </html>
