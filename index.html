@@ -1,585 +1,244 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>成就资格修复器 / Achievement Fixer</title>
-    
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" href="apple-touch-icon.png">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Bedrock Achievement Fixer</title>
+    <!-- JSZip Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        /* ================= 极简黑白变量 ================= */
-        :root, [data-theme="dark"] {
-            --mono-bg: #09090b;
-            --mono-card: rgba(18, 18, 21, 0.75);
-            --mono-surface: rgba(24, 24, 27, 0.65);
-            --mono-border: rgba(255, 255, 255, 0.1);
-            --mono-border-light: rgba(255, 255, 255, 0.2);
-            --mono-text: #f4f4f5;
-            --mono-text-dim: #a1a1aa;
-            --mono-icon-bg: #f4f4f5;
-            --mono-icon-color: #09090b;
-            --mono-badge-bad-bg: #f4f4f5;
-            --mono-badge-bad-text: #09090b;
-            --mono-btn-primary-bg: #f4f4f5;
-            --mono-btn-primary-text: #09090b;
-            --mono-hover-bg: rgba(255, 255, 255, 0.1);
-            --mono-drag-bg: rgba(255, 255, 255, 0.15);
-            --mono-log-bg: rgba(0, 0, 0, 0.5);
-            --blur-val: blur(16px) saturate(180%);
-            --color-scheme: dark;
+        :root {
+            --mono-bg: #0d0d0d;
+            --mono-card: #161616;
+            --mono-border: #262626;
+            --mono-border-light: #333333;
+            --mono-text: #ededed;
+            --mono-text-dim: #888888;
+            --mono-accent: #ffffff;
+            --mono-accent-btn: #ffffff;
+            --mono-accent-text: #000000;
+            --danger-color: #ff4d4f;
+            --success-color: #52c41a;
         }
 
         [data-theme="light"] {
-            --mono-bg: #f4f4f5;
-            --mono-card: rgba(255, 255, 255, 0.75);
-            --mono-surface: rgba(250, 250, 250, 0.65);
-            --mono-border: rgba(0, 0, 0, 0.1);
-            --mono-border-light: rgba(0, 0, 0, 0.2);
-            --mono-text: #09090b;
-            --mono-text-dim: #71717a;
-            --mono-icon-bg: #09090b;
-            --mono-icon-color: #ffffff;
-            --mono-badge-bad-bg: #09090b;
-            --mono-badge-bad-text: #ffffff;
-            --mono-btn-primary-bg: #09090b;
-            --mono-btn-primary-text: #ffffff;
-            --mono-hover-bg: rgba(0, 0, 0, 0.05);
-            --mono-drag-bg: rgba(0, 0, 0, 0.1);
-            --mono-log-bg: rgba(244, 244, 245, 0.8);
-            --blur-val: blur(16px) saturate(180%);
-            --color-scheme: light;
+            --mono-bg: #f5f5f7;
+            --mono-card: #ffffff;
+            --mono-border: #e5e5e7;
+            --mono-border-light: #d1d1d6;
+            --mono-text: #1d1d1f;
+            --mono-text-dim: #86868b;
+            --mono-accent: #000000;
+            --mono-accent-btn: #000000;
+            --mono-accent-text: #ffffff;
         }
 
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-            background-color: var(--mono-bg);
-            color: var(--mono-text);
-            margin: 0;
-            padding: 32px 16px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            transition: background-color 0.25s ease, color 0.25s ease;
-        }
-
-        body.has-custom-bg::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .container{
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 480px;
-            background: var(--mono-card);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            border: 1px solid var(--mono-border);
-            border-radius: 16px;
-            padding: 28px 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            transition: max-width 0.3s ease, padding 0.3s ease;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--mono-bg); color: var(--mono-text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px 12px; background-size: cover; background-position: center; background-attachment: fixed; transition: background-color 0.3s, color 0.3s; }
+        body.has-custom-bg::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: -1; }
         
-        .control-box {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            display: flex;
-            gap: 6px;
-        }
-        .ctrl-select, .ctrl-btn {
-            background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            color: var(--mono-text);
-            border: 1px solid var(--mono-border);
-            padding: 4px 10px;
-            font-size: 0.72rem;
-            font-weight: 500;
-            border-radius: 6px;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.2s, background-color 0.2s, color 0.2s;
-        }
-        .ctrl-select:hover, .ctrl-btn:hover { border-color: var(--mono-border-light); }
-
-        .header{text-align:center;margin-bottom:24px;margin-top:12px;}
-        .icon-box{
-            width: 56px; height: 56px;
-            background: var(--mono-icon-bg);
-            color: var(--mono-icon-color);
-            border-radius: 12px;
-            display:inline-flex; justify-content:center; align-items:center;
-            font-size: 28px;
-            margin-bottom:14px;
-            transition: transform 0.2s ease;
-        }
-        .icon-box:hover { transform: scale(1.03); }
-        h1{
-            font-size:1.35rem; font-weight:600;
-            margin:0 0 6px 0;
-            color: var(--mono-text);
-            letter-spacing: -0.02em;
-        }
-        p.desc{font-size:.82rem;color:var(--mono-text-dim);margin:0;line-height:1.5}
+        .container { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 16px; }
         
-        .file-dropzone{
-            position:relative;
-            background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            border: 1px dashed var(--mono-border-light);
-            border-radius: 8px;
-            padding: 32px 16px 24px 16px;
-            text-align:center; cursor:pointer;
-            transition: all .2s ease;
-            margin-bottom:20px;
-        }
-        .file-dropzone:hover {
-            background: var(--mono-hover-bg);
-            border-color: var(--mono-text);
-        }
-        .file-dropzone.dragover{
-            background: var(--mono-drag-bg);
-            border-color: var(--mono-text);
-            transform: scale(0.99);
-        }
-        .file-dropzone .title{
-            font-size:.92rem; font-weight:600;
-            color: var(--mono-text);
-            margin-bottom:4px;
-        }
-        .file-dropzone .subtitle{font-size:.75rem;color:var(--mono-text-dim)}
-        .demo-btn-link {
-            display: inline-block;
-            margin-top: 14px;
-            font-size: 0.75rem;
-            color: var(--mono-text);
-            text-decoration: underline;
-            text-underline-offset: 4px;
-            cursor: pointer;
-            opacity: 0.8;
-            transition: opacity 0.15s;
-        }
-        .demo-btn-link:hover { opacity: 1; }
-        input[type=file]{display:none}
+        .top-bar { display: flex; justify-content: space-between; align-items: center; }
+        .select-custom { background: var(--mono-card); border: 1px solid var(--mono-border); color: var(--mono-text); padding: 6px 10px; border-radius: 8px; font-size: 0.8rem; outline: none; }
+        .btn-sm { background: var(--mono-card); border: 1px solid var(--mono-border); color: var(--mono-text); padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .btn-sm:hover { border-color: var(--mono-border-light); }
 
-        .accordion{
-            background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            border: 1px solid var(--mono-border);
-            border-radius: 8px;
-            margin-bottom: 12px;
-            overflow: hidden;
-            transition: border-color 0.2s, background-color 0.25s;
-        }
-        .accordion:hover { border-color: var(--mono-border-light); }
-        .accordion-header{
-            padding: 12px 14px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: var(--mono-text);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-        .accordion-content{
-            display: none;
-            padding: 14px;
-            font-size: 0.75rem;
-            line-height: 1.6;
-            color: var(--mono-text-dim);
-            border-top: 1px solid var(--mono-border);
-            background: var(--mono-card);
-        }
-        .accordion-content b { color: var(--mono-text); }
-        .accordion-content code {
-            display: block;
-            background: var(--mono-surface);
-            border: 1px solid var(--mono-border);
-            padding: 6px 10px;
-            margin: 6px 0 8px 0;
-            border-radius: 4px;
-            color: var(--mono-text);
-            word-break: break-all;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        }
+        .header { text-align: center; margin: 8px 0; }
+        .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+        .header p { font-size: 0.8rem; color: var(--mono-text-dim); margin-top: 4px; }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .feature-item {
-            background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            border: 1px solid var(--mono-border);
-            padding: 12px 8px;
-            text-align: center;
-            border-radius: 8px;
-        }
-        .feature-item .f-icon { font-size: 1.1rem; margin-bottom: 6px; }
-        .feature-item .f-title { font-size: 0.75rem; font-weight: 600; color: var(--mono-text); margin-bottom: 2px; }
-        .feature-item .f-desc { font-size: 0.65rem; color: var(--mono-text-dim); line-height: 1.4; }
-
-        .cards-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .card-box {
-            display:none;
-            background: var(--mono-surface);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            border: 1px solid var(--mono-border);
-            border-radius: 8px;
-            padding: 18px;
-            animation: fadeIn .25s ease;
-        }
-        .card-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--mono-text);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-        .status-item{
-            display:flex; justify-content:space-between; align-items:center;
-            padding:10px 0;
-            border-bottom: 1px solid var(--mono-border);
-            font-size:.82rem;
-        }
-        .status-item:last-child{border-bottom:none}
-        .key-name{
-            font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-            color: var(--mono-text-dim);
-            font-size: 0.78rem;
-        }
-        .val-info {
-            font-family: ui-monospace, SFMono-Regular, Monaco, monospace;
-            color: var(--mono-text);
-            font-weight: 500;
-            text-align: right;
-            font-size: 0.8rem;
-        }
-        .badge{
-            padding:3px 8px;
-            border-radius: 4px;
-            font-size:.72rem; font-weight:600;
-            border: 1px solid var(--mono-border-light);
-        }
-        .badge-bad{
-            background: var(--mono-badge-bad-bg);
-            color: var(--mono-badge-bad-text);
-            border-color: var(--mono-badge-bad-bg);
-        }
-        .badge-good{
-            background: var(--mono-card);
-            color: var(--mono-text-dim);
-            border-color: var(--mono-border);
-        }
-        .summary-box{
-            margin-top:14px; padding:12px;
-            border-radius: 6px;
-            font-size:.78rem; line-height:1.5;
-            display:flex; align-items:center; gap:8px;
-            border: 1px solid var(--mono-border);
-            background: var(--mono-card);
-        }
-        .btn-group{display:flex;gap:12px;margin-top:12px}
-        button{
-            flex:1; padding:12px;
-            border-radius: 6px;
-            font-size:.88rem; font-weight:600;
-            cursor:pointer; transition: all .15s ease;
-            display:inline-flex; justify-content:center; align-items:center; gap:6px;
-            font-family:inherit;
-        }
-        .btn-primary{
-            background: var(--mono-btn-primary-bg);
-            color: var(--mono-btn-primary-text);
-            border: 1px solid var(--mono-btn-primary-bg);
-        }
-        .btn-primary:hover{ opacity: 0.88; }
-        .btn-primary:active{ transform: scale(0.98); }
-        .btn-primary:disabled{
-            background: var(--mono-surface);
-            color: var(--mono-border-light);
-            border-color: var(--mono-border);
-            cursor:not-allowed;
-            transform: none;
-            opacity: 1;
-        }
-        .btn-cancel{
-            background: var(--mono-surface);
-            color: var(--mono-text);
-            border: 1px solid var(--mono-border);
-        }
-        .btn-cancel:hover{ border-color: var(--mono-border-light); }
-        .btn-sm { padding: 4px 8px; font-size: 0.7rem; border-radius: 4px; }
-        #log{
-            margin-top:16px; padding:12px;
-            background: var(--mono-log-bg);
-            backdrop-filter: var(--blur-val);
-            -webkit-backdrop-filter: var(--blur-val);
-            border: 1px solid var(--mono-border);
-            border-radius: 6px;
-            font-family: ui-monospace, SFMono-Regular, monospace;
-            font-size:.72rem; color: var(--mono-text-dim);
-            max-height:120px; overflow-y:auto;
-            display:none; white-space:pre-wrap; word-break:break-all;
-        }
-        .backup-note{
-            margin-top:12px; padding-top:8px;
-            border-top: 1px solid var(--mono-border);
-            font-size:.72rem; color:var(--mono-text-dim);
-        }
-        .footer-info {
-            margin-top: 24px;
-            text-align: center;
-            font-size: 0.72rem;
-            color: var(--mono-text-dim);
-            border-top: 1px solid var(--mono-border);
-            padding-top: 16px;
-            line-height: 1.6;
-        }
-        .twitter-link {
-            color: var(--mono-text);
-            text-decoration: none;
-            font-weight: 600;
-            border-bottom: 1px solid var(--mono-border-light);
-        }
+        .card { background: var(--mono-card); border: 1px solid var(--mono-border); border-radius: 12px; padding: 16px; }
         
-        .history-list {
-            margin-top: 8px;
-            max-height: 160px;
-            overflow-y: auto;
-            border-top: 1px solid var(--mono-border);
-        }
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            font-size: 0.72rem;
-            border-bottom: 1px dashed var(--mono-border);
-        }
-        .history-item:last-child { border-bottom: none; }
-        .history-name {
-            font-weight: 600;
-            color: var(--mono-text);
-            max-width: 140px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .history-time { color: var(--mono-text-dim); font-size: 0.65rem; }
+        .dropzone { border: 2px dashed var(--mono-border-light); border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .dropzone:hover, .dropzone.dragover { border-color: var(--mono-text); background: rgba(255, 255, 255, 0.02); }
+        .dropzone h3 { font-size: 1rem; margin-bottom: 6px; }
+        .dropzone p { font-size: 0.75rem; color: var(--mono-text-dim); }
+        .demo-btn { margin-top: 12px; background: none; border: none; color: var(--mono-text-dim); font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
 
-        /* ================= 横屏适配 ================= */
-        @media screen and (orientation: landscape) and (max-height: 520px) {
-            body { padding: 12px 16px; }
-            .container { max-width: 720px; padding: 16px 20px; }
-            .header { margin-top: 0; margin-bottom: 14px; }
-            .icon-box { width: 42px; height: 42px; font-size: 20px; margin-bottom: 6px; }
-            h1 { font-size: 1.15rem; }
-            p.desc { font-size: 0.75rem; }
-            .file-dropzone { padding: 18px 12px 14px 12px; margin-bottom: 12px; }
-            .features-grid { margin-bottom: 10px; }
-            .feature-item { padding: 8px 4px; }
-            .cards-wrapper { flex-direction: row; gap: 12px; }
-            .cards-wrapper .card-box { flex: 1; margin-bottom: 0; }
-            .status-item { padding: 6px 0; font-size: 0.75rem; }
-            .btn-group { margin-top: 10px; }
-            button { padding: 8px; font-size: 0.8rem; }
-        }
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .feature-item { background: var(--mono-card); border: 1px solid var(--mono-border); border-radius: 10px; padding: 12px 8px; text-align: center; }
+        .feature-item .icon { font-size: 1.2rem; margin-bottom: 4px; }
+        .feature-item h4 { font-size: 0.75rem; margin-bottom: 2px; }
+        .feature-item p { font-size: 0.65rem; color: var(--mono-text-dim); line-height: 1.2; }
+
+        .accordion { cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; }
+        .accordion-content { display: none; margin-top: 10px; font-size: 0.75rem; color: var(--mono-text-dim); line-height: 1.5; border-top: 1px solid var(--mono-border); padding-top: 10px; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        .info-item { background: rgba(255,255,255,0.02); border: 1px solid var(--mono-border); padding: 8px 10px; border-radius: 8px; }
+        .info-item label { display: block; font-size: 0.65rem; color: var(--mono-text-dim); }
+        .info-item span { font-size: 0.8rem; font-weight: 600; word-break: break-all; }
+
+        .status-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--mono-border); font-size: 0.8rem; }
+        .status-row:last-child { border-bottom: none; }
+        .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: var(--mono-border); color: var(--mono-text-dim); }
+        .badge-good { background: rgba(82, 196, 26, 0.15); color: var(--success-color); }
+        .badge-bad { background: rgba(255, 77, 79, 0.15); color: var(--danger-color); }
+
+        .btn-group { display: flex; gap: 10px; }
+        .btn-primary { flex: 2; background: var(--mono-accent-btn); color: var(--mono-accent-text); border: none; padding: 12px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-secondary { flex: 1; background: transparent; color: var(--mono-text); border: 1px solid var(--mono-border); padding: 12px; border-radius: 10px; font-size: 0.9rem; cursor: pointer; }
+
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .history-actions { display: flex; gap: 6px; }
+        .history-actions .btn-sm { padding: 4px 8px; font-size: 0.7rem; }
+        .history-list { max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); border: 1px solid var(--mono-border); padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; }
+        .history-name { font-weight: 600; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-time { font-size: 0.65rem; color: var(--mono-text-dim); }
+
+        .tip-box { background: rgba(255,255,255,0.01); border-left: 3px solid var(--mono-text); padding: 10px 12px; font-size: 0.75rem; color: var(--mono-text-dim); border-radius: 0 8px 8px 0; }
+        
+        .footer { text-align: center; font-size: 0.7rem; color: var(--mono-text-dim); margin-top: 12px; line-height: 1.4; }
+        .log-box { font-family: monospace; font-size: 0.7rem; background: #000; color: #00ff66; padding: 10px; border-radius: 8px; max-height: 120px; overflow-y: auto; display: none; white-space: pre-wrap; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <!-- 右上角控制栏 -->
-    <div class="control-box">
-        <button class="ctrl-btn" id="bgBtn" title="更换背景图片">背景</button>
-        <select id="themeSelect" class="ctrl-select">
-            <option value="system" id="opt_sys">系统</option>
-            <option value="dark" id="opt_dark">深色</option>
-            <option value="light" id="opt_light">浅色</option>
-        </select>
-        <select id="langSelect" class="ctrl-select">
-            <option value="zh">简体中文</option>
-            <option value="en">English</option>
-        </select>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <button class="btn-sm" id="bgBtn">Background</button>
+        <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
+        <div style="display:flex; gap:8px;">
+            <select class="select-custom" id="langSelect">
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+            </select>
+            <select class="select-custom" id="themeSelect">
+                <option value="system" id="opt_sys">System</option>
+                <option value="dark" id="opt_dark">Dark</option>
+                <option value="light" id="opt_light">Light</option>
+            </select>
+        </div>
     </div>
 
-    <!-- 隐藏背景上传框 -->
-    <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
-
+    <!-- Header -->
     <div class="header">
-        <div class="icon-box">🛠️</div>
-        <h1 id="appTitle">成就资格修复器</h1>
-        <p class="desc" id="appDesc">精准NBT解析 · 自动备份 · 极简黑白界面</p>
+        <h1 id="appTitle">Achievement Fixer</h1>
+        <p id="appDesc">NBT Parser · Auto Backup · Minimalist Interface</p>
     </div>
 
-    <div class="file-dropzone" id="dropzone">
-        <div class="title" id="fileTitle">点击 或 拖拽文件到此处</div>
-        <div class="subtitle" id="fileSub">支持 .mcworld / .zip / level.dat · 基岩版专用</div>
-        <div class="demo-btn-link" id="loadDemoBtn" onclick="event.stopPropagation(); loadDemoData();">🧪 没有存档？点击一键加载示例数据预览</div>
-        <input type="file" id="fileInput" accept=".mcworld,.zip,.dat,application/zip,application/octet-stream,*/*">
-    </div>
-
-    <div id="introGuides">
-        <div class="features-grid">
-            <div class="feature-item">
-                <div class="f-icon">🔒</div>
-                <div class="f-title" id="f1_title">纯本地解析</div>
-                <div class="f-desc" id="f1_desc">文件零上传<br>浏览器本地处理</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-icon">💾</div>
-                <div class="f-title" id="f2_title">自动备份</div>
-                <div class="f-desc" id="f2_desc">自动生成原包<br>.dat.bak 备份</div>
-            </div>
-            <div class="feature-item">
-                <div class="f-icon">🎯</div>
-                <div class="f-title" id="f3_title">无损修改</div>
-                <div class="f-desc" id="f3_desc">只清空限制标记<br>不影响建筑物品</div>
-            </div>
+    <!-- File Dropzone -->
+    <div class="card">
+        <div class="dropzone" id="dropzone">
+            <h3 id="fileTitle">Click or Drag & Drop File Here</h3>
+            <p id="fileSub">Supports .mcworld / .zip / level.dat · Bedrock Edition</p>
+            <input type="file" id="fileInput" accept=".mcworld,.zip,.dat" style="display:none;">
         </div>
-
-        <div class="accordion">
-            <div class="accordion-header" onclick="toggleAccordion('pathGuide')">
-                <span id="pathTitle">📖 如何导出存档文件？(.mcworld)</span>
-                <span id="pathGuideArrow">▼</span>
-            </div>
-            <div class="accordion-content" id="pathGuide"></div>
-        </div>
-
-        <div class="accordion">
-            <div class="accordion-header" onclick="toggleAccordion('faqGuide')">
-                <span id="faqTitle">❓ 常见问题与注意细节</span>
-                <span id="faqGuideArrow">▼</span>
-            </div>
-            <div class="accordion-content" id="faqGuide"></div>
+        <div style="text-align:center;">
+            <button class="demo-btn" id="loadDemoBtn" onclick="loadDemoData()">🧪 No world file? Click to load demo preview</button>
         </div>
     </div>
 
-    <!-- 数据展现区域 -->
-    <div class="cards-wrapper">
-        <div class="card-box" id="infoCard">
-            <div class="card-title"><span id="infoCardTitle">🗺️ 存档概览信息</span></div>
-            <div class="status-item">
-                <span class="key-name" id="k_name">🌍 世界名称</span>
-                <span id="info_name" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_mode">🎮 游戏模式</span>
-                <span id="info_mode" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_diff">🎚️ 难度</span>
-                <span id="info_difficulty" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_seed">🌱 地图种子</span>
-                <span id="info_seed" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_time">⏱️ 游戏时间 / 天数</span>
-                <span id="info_time" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_size">📦 存档大小</span>
-                <span id="info_size" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_format">📄 文件格式</span>
-                <span id="info_format" class="val-info">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name" id="k_nbt">✅ NBT 状态</span>
-                <span id="info_nbt_status" class="badge badge-good">解析正常</span>
-            </div>
+    <!-- Intro Features -->
+    <div class="features" id="introGuides">
+        <div class="feature-item">
+            <div class="icon">🔒</div>
+            <h4 id="f1_title">100% Local</h4>
+            <p id="f1_desc">No server uploads<br>Processed in browser</p>
         </div>
-
-        <div class="card-box" id="statusCard">
-            <div class="card-title"><span id="statusCardTitle">🔒 成就限制状态</span></div>
-            <div class="status-item">
-                <span class="key-name">hasBeenLoadedInCreative</span>
-                <span id="val_creative" class="badge">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name">cheatsEnabled</span>
-                <span id="val_cheats" class="badge">-</span>
-            </div>
-            <div class="status-item">
-                <span class="key-name">commandsEnabled</span>
-                <span id="val_commands" class="badge">-</span>
-            </div>
-            <div class="summary-box" id="summaryBox"><span id="summaryText"></span></div>
-            <div class="backup-note" id="backupNoteText">💾 修复时自动备份原始数据</div>
+        <div class="feature-item">
+            <div class="icon">💾</div>
+            <h4 id="f2_title">Auto Backup</h4>
+            <p id="f2_desc">Auto-creates<br>.dat.bak file</p>
+        </div>
+        <div class="feature-item">
+            <div class="icon">🎯</div>
+            <h4 id="f3_title">Safe Edit</h4>
+            <p id="f3_desc">Clears locks only<br>Preserves builds & items</p>
         </div>
     </div>
 
+    <!-- Path Accordion -->
+    <div class="card">
+        <div class="accordion" onclick="toggleAccordion('pathGuide')">
+            <span id="pathTitle">📖 How to export world files? (.mcworld)</span>
+            <span id="pathGuideArrow">▼</span>
+        </div>
+        <div class="accordion-content" id="pathGuide"></div>
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div class="card">
+        <div class="accordion" onclick="toggleAccordion('faqGuide')">
+            <span id="faqTitle">❓ FAQ & Important Notes</span>
+            <span id="faqGuideArrow">▼</span>
+        </div>
+        <div class="accordion-content" id="faqGuide"></div>
+    </div>
+
+    <!-- Info Overview (Hidden until loaded) -->
+    <div class="card" id="infoCard" style="display:none;">
+        <h3 style="font-size:0.9rem;" id="infoCardTitle">🗺️ World Overview</h3>
+        <div class="info-grid">
+            <div class="info-item"><label id="k_name">World Name</label><span id="info_name">-</span></div>
+            <div class="info-item"><label id="k_mode">Game Mode</label><span id="info_mode">-</span></div>
+            <div class="info-item"><label id="k_diff">Difficulty</label><span id="info_difficulty">-</span></div>
+            <div class="info-item"><label id="k_seed">World Seed</label><span id="info_seed">-</span></div>
+            <div class="info-item"><label id="k_time">In-Game Time</label><span id="info_time">-</span></div>
+            <div class="info-item"><label id="k_size">File Size</label><span id="info_size">-</span></div>
+            <div class="info-item"><label id="k_format">File Format</label><span id="info_format">-</span></div>
+            <div class="info-item"><label id="k_nbt">NBT Status</label><span id="info_nbt_status" class="badge">-</span></div>
+        </div>
+    </div>
+
+    <!-- Status Flags (Hidden until loaded) -->
+    <div class="card" id="statusCard" style="display:none;">
+        <h3 style="font-size:0.9rem; margin-bottom:8px;" id="statusCardTitle">🔒 Achievement Lock Status</h3>
+        <div class="status-row">
+            <span>hasBeenLoadedInCreative</span>
+            <span id="val_creative" class="badge">-</span>
+        </div>
+        <div class="status-row">
+            <span>cheatsEnabled</span>
+            <span id="val_cheats" class="badge">-</span>
+        </div>
+        <div class="status-row">
+            <span>commandsEnabled</span>
+            <span id="val_commands" class="badge">-</span>
+        </div>
+        <div id="summaryBox" style="margin-top:12px; padding:8px; border-radius:6px; font-size:0.75rem;">
+            <span id="summaryText"></span>
+        </div>
+    </div>
+
+    <!-- Action Group -->
     <div class="btn-group" id="actionGroup" style="display:none;">
-        <button class="btn-cancel" id="resetBtn">重置</button>
-        <button class="btn-primary" id="fixBtn">一键修复并导出</button>
+        <button class="btn-secondary" id="resetBtn">Reset</button>
+        <button class="btn-primary" id="fixBtn">Fix & Export World</button>
     </div>
-    
-    <div class="card-box" id="historyCard" style="display: block; margin-top: 16px;">
-        <div class="card-title">
-            <span id="historyTitle">📜 修改历史日志</span>
-            <div>
-                <button class="btn-cancel btn-sm" id="exportCsvBtn">导出 CSV</button>
-                <button class="btn-cancel btn-sm" id="exportJsonBtn">导出 JSON</button>
-                <button class="btn-cancel btn-sm" id="clearHistoryBtn" style="color: #ef4444;">清空</button>
+
+    <!-- History Card -->
+    <div class="card">
+        <div class="history-header">
+            <span style="font-size:0.85rem; font-weight:600;" id="historyTitle">📜 History Log</span>
+            <div class="history-actions">
+                <button class="btn-sm" id="exportCsvBtn">Export CSV</button>
+                <button class="btn-sm" id="exportJsonBtn">Export JSON</button>
+                <button class="btn-sm" id="clearHistoryBtn" style="color:var(--danger-color);">Clear</button>
             </div>
         </div>
-        <div class="history-list" id="historyContainer">
-            <div style="text-align: center; color: var(--mono-text-dim); padding: 12px; font-size: 0.72rem;" id="noHistoryText">暂无处理记录</div>
-        </div>
+        <div class="history-list" id="historyContainer"></div>
     </div>
 
-    <div id="log"></div>
+    <!-- Tip Footer Box -->
+    <div class="tip-box" id="tipText"></div>
 
-    <div style="margin-top: 16px; padding: 12px; background: var(--mono-surface); backdrop-filter: var(--blur-val); -webkit-backdrop-filter: var(--blur-val); border: 1px solid var(--mono-border); border-left: 2px solid var(--mono-text); border-radius: 6px; font-size: 0.72rem; color: var(--mono-text-dim); line-height: 1.5; display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 0.9rem;">💡</span>
-        <span id="tipText"></span>
-    </div>
+    <!-- Console Log -->
+    <div class="log-box" id="log"></div>
 
-    <div class="footer-info">
-        Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener" class="twitter-link">@KotegawazzZ</a><br>
-        <span style="opacity: 0.6; font-size:0.65rem;" id="footerTag">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>与 Mojang Studios 或 Microsoft 无关</span>
+    <!-- Footer -->
+    <div class="footer">
+        <p>Crafted by <strong>@KotegawazzZ</strong></p>
+        <p id="footerTag">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft</p>
     </div>
 </div>
 
 <script>
-// ================= 辅助：文件大小格式化 =================
+// ================= Helper: Format Bytes =================
 function formatBytes(bytes) {
     if (bytes === 0 || !bytes) return '0 B';
     const k = 1024;
@@ -588,7 +247,7 @@ function formatBytes(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// ================= 主题模式 (系统 / 深色 / 浅色) =================
+// ================= Theme Switcher =================
 const themeSelect = document.getElementById('themeSelect');
 
 function applyTheme(theme) {
@@ -617,7 +276,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
     }
 });
 
-// ================= 自定义背景逻辑 =================
+// ================= Background Customization =================
 const bgBtn = document.getElementById('bgBtn');
 const bgFileInput = document.getElementById('bgFileInput');
 
@@ -637,6 +296,12 @@ bgBtn.addEventListener('click', () => {
 bgFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    if (file.size > 4 * 1024 * 1024) {
+        alert(currentLang === 'zh' ? '背景图片过大，请选择 4MB 以下的图片以防保存失败。' : 'Image too large. Please select an image under 4MB.');
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = function(evt) {
         setBackground(evt.target.result);
@@ -650,7 +315,7 @@ function setBackground(base64) {
     try {
         localStorage.setItem('mcsr_custom_bg', base64);
     } catch(err) {
-        console.warn('Background image too large for localStorage');
+        console.warn('Background image too large for localStorage.');
     }
 }
 
@@ -666,8 +331,46 @@ function clearBackground() {
     if (savedImg) setBackground(savedImg);
 })();
 
-// ================= 多语言定义 =================
+// ================= i18n Translations =================
 const translations = {
+    en: {
+        bgBtn: "Background",
+        opt_sys: "System", opt_dark: "Dark", opt_light: "Light",
+        appTitle: "Achievement Fixer",
+        appDesc: "NBT Parser · Auto Backup · Minimalist Interface",
+        dropTitle: "Click or Drag & Drop File Here",
+        dropSub: "Supports .mcworld / .zip / level.dat · Bedrock Edition",
+        demoBtn: "🧪 No world file? Click to load demo preview",
+        f1_title: "100% Local", f1_desc: "No server uploads<br>Processed in browser",
+        f2_title: "Auto Backup", f2_desc: "Auto-creates<br>.dat.bak file",
+        f3_title: "Safe Edit", f3_desc: "Clears locks only<br>Preserves builds & items",
+        pathTitle: "📖 How to export world files? (.mcworld)",
+        pathContent: `<b>📱 iOS (iPhone/iPad):</b> Open "Files" app ➔ On My iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds, compress the world folder and rename it to <code>.mcworld</code>.<br><b>🤖 Android:</b> Navigate to <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> to compress.<br><b>💻 Windows:</b> Press <code>Win + R</code> and paste: <code>%localappdata%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\minecraftWorlds</code>`,
+        faqTitle: "❓ FAQ & Important Notes",
+        faqContent: `<b>1. What should I avoid after fixing?</b><br>Do NOT enable "Activate Cheats" or switch to "Creative Mode" in-game, or achievements will be disabled again.<br><br><b>2. Why did importing fail?</b><br>If manually zipping, ensure you compress the <b>contents inside</b> the world folder, not the root folder itself.`,
+        infoCardTitle: "🗺️ World Overview",
+        k_name: "World Name", k_mode: "Game Mode", k_diff: "Difficulty", k_seed: "World Seed",
+        k_time: "In-Game Time", k_size: "File Size", k_format: "File Format", k_nbt: "NBT Status",
+        statusCardTitle: "🔒 Achievement Lock Status",
+        resetBtn: "Reset", fixBtn: "Fix & Export World",
+        exportCsvBtn: "Export CSV", exportJsonBtn: "Export JSON", clearHistoryBtn: "Clear",
+        tipText: "<strong style='color:var(--mono-text);'>Tips:</strong> After re-entering the world, do NOT enable cheats or enter creative mode again, otherwise achievements will be locked once more.",
+        footerTag: "Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft",
+        historyTitle: "📜 History Log",
+        noHistoryText: "No history found",
+        
+        badgeNormal: "0 (OK)", badgeAbnormal: "1 (Locked)", badgeNotFound: "N/A",
+        nbtNormal: "Parsed OK", nbtError: "Parse Error",
+        summaryWarn: "⚠️ Locks or non-survival mode detected! Click fix to restore survival mode & achievements.",
+        summaryOk: "✅ World status is clean! Achievements are active.",
+        backupDatText: "💾 Auto backups original level.dat as level.dat.bak",
+        backupZipText: "💾 Auto backups level.dat to level.dat.bak in package",
+        
+        modes: { 0: 'Survival', 1: 'Creative', 2: 'Adventure', 3: 'Spectator' },
+        diffs: { 0: 'Peaceful', 1: 'Easy', 2: 'Normal', 3: 'Hard' },
+        timeFormat: (m, d) => `${m} mins (Day ${d})`,
+        demoLoadedTitle: "Loaded: Demo_World.mcworld"
+    },
     zh: {
         bgBtn: "背景",
         opt_sys: "系统", opt_dark: "深色", opt_light: "浅色",
@@ -688,6 +391,7 @@ const translations = {
         k_time: "⏱️ 游戏时间 / 天数", k_size: "📦 存档大小", k_format: "📄 文件格式", k_nbt: "✅ NBT 状态",
         statusCardTitle: "🔒 成就限制状态",
         resetBtn: "重置", fixBtn: "一键修复并导出",
+        exportCsvBtn: "导出 CSV", exportJsonBtn: "导出 JSON", clearHistoryBtn: "清空",
         tipText: "<strong style='color:var(--mono-text);'>温馨提示：</strong>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。",
         footerTag: "Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>与 Mojang Studios 或 Microsoft 无关",
         historyTitle: "📜 修改历史日志",
@@ -704,47 +408,10 @@ const translations = {
         diffs: { 0: '和平 (Peaceful)', 1: '简单 (Easy)', 2: '普通 (Normal)', 3: '困难 (Hard)' },
         timeFormat: (m, d) => `${m} 分钟 (第 ${d} 天)`,
         demoLoadedTitle: "已加载：示例测试存档.mcworld"
-    },
-    en: {
-        bgBtn: "Background",
-        opt_sys: "System", opt_dark: "Dark", opt_light: "Light",
-        appTitle: "Achievement Fixer",
-        appDesc: "NBT Parser · Auto Backup · Minimalist Interface",
-        dropTitle: "Click or Drag & Drop File Here",
-        dropSub: "Supports .mcworld / .zip / level.dat · Bedrock Edition",
-        demoBtn: "🧪 No world file? Click to load demo preview",
-        f1_title: "100% Local", f1_desc: "No server uploads<br>Processed in browser",
-        f2_title: "Auto Backup", f2_desc: "Auto-creates<br>.dat.bak file",
-        f3_title: "Safe Edit", f3_desc: "Clears locks only<br>Preserves builds & items",
-        pathTitle: "📖 How to export world files? (.mcworld)",
-        pathContent: `<b>📱 iOS (iPhone/iPad):</b> Open "Files" app ➔ On My iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds, compress the world folder and rename it to <code>.mcworld</code>.<br><b>🤖 Android:</b> Navigate to <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> to compress.<br><b>💻 Windows:</b> Press <code>Win + R</code> and paste: <code>%localappdata%\\Packages\\Microsoft.MinecraftUWP_8wekyb3d8bbwe\\LocalState\\games\\com.mojang\\minecraftWorlds</code>`,
-        faqTitle: "❓ FAQ & Important Notes",
-        faqContent: `<b>1. What should I avoid after fixing?</b><br>Do NOT enable "Activate Cheats" or switch to "Creative Mode" in-game, or achievements will be disabled again.<br><br><b>2. Why did importing fail?</b><br>If manually zipping, ensure you compress the <b>contents inside</b> the world folder, not the root folder itself.`,
-        infoCardTitle: "🗺️ World Overview",
-        k_name: "🌍 World Name", k_mode: "🎮 Game Mode", k_diff: "🎚️ Difficulty", k_seed: "🌱 World Seed",
-        k_time: "⏱️ In-Game Time", k_size: "📦 File Size", k_format: "📄 File Format", k_nbt: "✅ NBT Status",
-        statusCardTitle: "🔒 Achievement Lock Status",
-        resetBtn: "Reset", fixBtn: "Fix & Export World",
-        tipText: "<strong style='color:var(--mono-text);'>Tips:</strong> After re-entering the world, do NOT enable cheats or enter creative mode again, otherwise achievements will be locked once more.",
-        footerTag: "Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft",
-        historyTitle: "📜 History Log",
-        noHistoryText: "No history found",
-        
-        badgeNormal: "0 (OK)", badgeAbnormal: "1 (Locked)", badgeNotFound: "N/A",
-        nbtNormal: "Parsed OK", nbtError: "Parse Error",
-        summaryWarn: "⚠️ Locks or non-survival mode detected! Click fix to restore survival mode & achievements.",
-        summaryOk: "✅ World status is clean! Achievements are active.",
-        backupDatText: "💾 Auto backups original level.dat as level.dat.bak",
-        backupZipText: "💾 Auto backups level.dat to level.dat.bak in package",
-        
-        modes: { 0: 'Survival', 1: 'Creative', 2: 'Adventure', 3: 'Spectator' },
-        diffs: { 0: 'Peaceful', 1: 'Easy', 2: 'Normal', 3: 'Hard' },
-        timeFormat: (m, d) => `${m} mins (Day ${d})`,
-        demoLoadedTitle: "Loaded: Demo_World.mcworld"
     }
 };
 
-let currentLang = 'zh';
+let currentLang = 'en';
 
 function setLanguage(lang) {
     currentLang = lang;
@@ -761,6 +428,7 @@ function setLanguage(lang) {
         k_name: t.k_name, k_mode: t.k_mode, k_diff: t.k_diff, k_seed: t.k_seed,
         k_time: t.k_time, k_size: t.k_size, k_format: t.k_format, k_nbt: t.k_nbt,
         statusCardTitle: t.statusCardTitle, resetBtn: t.resetBtn, fixBtn: t.fixBtn,
+        exportCsvBtn: t.exportCsvBtn, exportJsonBtn: t.exportJsonBtn, clearHistoryBtn: t.clearHistoryBtn,
         loadDemoBtn: t.demoBtn, historyTitle: t.historyTitle
     };
 
@@ -801,11 +469,13 @@ function toggleAccordion(id) {
 }
 
 function readInt64LE(view, offset) {
-    const low = view.getUint32(offset, true);
-    const high = view.getInt32(offset + 4, true);
     if (typeof BigInt !== 'undefined') {
+        const low = view.getUint32(offset, true);
+        const high = view.getInt32(offset + 4, true);
         return (BigInt(high) << BigInt(32)) | BigInt(low);
     }
+    const low = view.getUint32(offset, true);
+    const high = view.getUint32(offset + 4, true);
     return high * 0x100000000 + low;
 }
 
@@ -825,7 +495,6 @@ function saveHistoryItem(item) {
     renderHistory();
 }
 
-// 纯 DOM API 渲染修改历史，确保防范 XSS 注入
 function renderHistory() {
     const container = document.getElementById('historyContainer');
     container.textContent = ''; 
@@ -975,7 +644,6 @@ function loadDemoData() {
                 const arrayBuffer = await window.selectedFileObj.arrayBuffer();
                 rawLevelDat = new Uint8Array(arrayBuffer);
                 originalBackup = new Uint8Array(rawLevelDat);
-                document.getElementById('backupNoteText').textContent = t.backupDatText;
                 parseNBT(rawLevelDat);
             } else {
                 isSingleDat = false;
@@ -997,7 +665,6 @@ function loadDemoData() {
 
                 rawLevelDat = await levelDatEntry.async('uint8array');
                 originalBackup = new Uint8Array(rawLevelDat);
-                document.getElementById('backupNoteText').textContent = t.backupZipText;
                 parseNBT(rawLevelDat);
             }
         } catch (err) { 
@@ -1044,7 +711,9 @@ function loadDemoData() {
             } else if (tagType === TAG_LONG && name === 'Time') {
                 parsed[name] = readInt64LE(view, offset); offset += 8;
             } else {
-                offset += skipTag(tagType, view, offset);
+                const skipped = skipTag(tagType, view, offset);
+                if (skipped === 0 && tagType !== TAG_END) break;
+                offset += skipped;
             }
         }
         analyzeAndRender();
@@ -1067,7 +736,11 @@ function loadDemoData() {
                 const subType = view.getUint8(offset);
                 const listLen = view.getInt32(offset + 1, true);
                 let skipped = 5;
-                for (let i = 0; i < listLen; i++) skipped += skipTag(subType, view, offset + skipped);
+                for (let i = 0; i < listLen; i++) {
+                    const step = skipTag(subType, view, offset + skipped);
+                    if (step === 0) break;
+                    skipped += step;
+                }
                 return skipped;
             }
             case TAG_COMPOUND: {
@@ -1077,7 +750,9 @@ function loadDemoData() {
                     if (subType === TAG_END) break;
                     const nameLen = view.getUint16(offset + skipped, true);
                     skipped += 2 + nameLen;
-                    skipped += skipTag(subType, view, offset + skipped);
+                    const step = skipTag(subType, view, offset + skipped);
+                    skipped += step;
+                    if (step === 0 && subType !== TAG_END) break;
                 }
                 return skipped;
             }
@@ -1201,12 +876,14 @@ function loadDemoData() {
                 offset++;
             } else if (tagType === TAG_INT && name === 'GameType') {
                 if (view.getInt32(offset, true) !== 0) {
-                    view.setInt32(offset, 0, true);
+                    view.getInt32(offset, 0, true);
                     log('   ✓ GameType → 0 (Restored to Survival)');
                 }
                 offset += 4;
             } else {
-                offset += skipTag(tagType, view, offset);
+                const skipped = skipTag(tagType, view, offset);
+                if (skipped === 0 && tagType !== TAG_END) break;
+                offset += skipped;
             }
         }
 
@@ -1230,7 +907,9 @@ function loadDemoData() {
             } else if (t === TAG_INT && n === 'GameType') {
                 verifyOff += 4;
             } else {
-                verifyOff += skipTag(t, view, verifyOff);
+                const skipped = skipTag(t, view, verifyOff);
+                if (skipped === 0 && t !== TAG_END) break;
+                verifyOff += skipped;
             }
         }
 
@@ -1262,29 +941,10 @@ function loadDemoData() {
         }
 
         log('>> Packing archive with level.dat.bak ...');
-        const newZip = new JSZip();
+        zipInstance.file(targetLevelDatPath + '.bak', originalBackup);
+        zipInstance.file(targetLevelDatPath, rawLevelDat);
 
-        const zipFilePromises = [];
-        zipInstance.forEach((path, entry) => {
-            if (!entry.dir) {
-                zipFilePromises.push(
-                    entry.async('uint8array').then(data => ({ path, data }))
-                );
-            }
-        });
-
-        const zipFiles = await Promise.all(zipFilePromises);
-
-        zipFiles.forEach(file => {
-            if (file.path === targetLevelDatPath) {
-                newZip.file(file.path + '.bak', originalBackup);
-                newZip.file(file.path, rawLevelDat);
-            } else {
-                newZip.file(file.path, file.data);
-            }
-        });
-
-        const blob = await newZip.generateAsync({ 
+        const blob = await zipInstance.generateAsync({ 
             type: 'blob', 
             mimeType: 'application/x-minecraft-world',
             compression: 'DEFLATE',
@@ -1336,7 +996,7 @@ function loadDemoData() {
         document.getElementById('fileTitle').textContent = t.dropTitle;
         document.getElementById('fileSub').textContent = t.dropSub;
 
-        document.getElementById('introGuides').style.display = 'block';
+        document.getElementById('introGuides').style.display = 'grid';
         document.getElementById('loadDemoBtn').style.display = 'inline-block';
 
         document.getElementById('infoCard').style.display = 'none';
@@ -1348,9 +1008,8 @@ function loadDemoData() {
         logDiv.style.display = 'none';
     });
 
-    const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
-    const defaultLang = userLang.startsWith('zh') ? 'zh' : 'en';
-    setLanguage(defaultLang);
+    // 默认设置为英文，也可以切换
+    setLanguage('en');
 })();
 </script>
 </body>
