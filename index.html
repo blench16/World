@@ -50,8 +50,8 @@
 
         .card { background: var(--mono-card); border: 1px solid var(--mono-border); border-radius: 12px; padding: 16px; }
         
-        .dropzone { border: 2px dashed var(--mono-border-light); border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .dropzone:hover, .dropzone.dragover { border-color: var(--mono-text); background: rgba(255, 255, 255, 0.02); }
+        .dropzone { border: 2px dashed var(--mono-border-light); border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .dropzone:hover, .dropzone.dragover { border-color: var(--mono-accent); background: rgba(255, 255, 255, 0.05); transform: scale(1.005); }
         .dropzone h3 { font-size: 1rem; margin-bottom: 6px; }
         .dropzone p { font-size: 0.75rem; color: var(--mono-text-dim); }
         .demo-btn { margin-top: 12px; background: none; border: none; color: var(--mono-text-dim); font-size: 0.75rem; text-decoration: underline; cursor: pointer; }
@@ -65,7 +65,11 @@
         .accordion { cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; }
         .accordion-content { display: none; margin-top: 10px; font-size: 0.75rem; color: var(--mono-text-dim); line-height: 1.5; border-top: 1px solid var(--mono-border); padding-top: 10px; }
 
-        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+        /* World Banner & Icon Style */
+        .world-header-box { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .world-icon-img { width: 56px; height: 56px; border-radius: 8px; border: 1px solid var(--mono-border-light); object-fit: cover; display: none; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .info-item { background: rgba(255,255,255,0.02); border: 1px solid var(--mono-border); padding: 8px 10px; border-radius: 8px; }
         .info-item label { display: block; font-size: 0.65rem; color: var(--mono-text-dim); }
         .info-item span { font-size: 0.8rem; font-weight: 600; word-break: break-all; }
@@ -126,8 +130,8 @@
     <!-- File Dropzone -->
     <div class="card">
         <div class="dropzone" id="dropzone">
-            <h3 id="fileTitle">Click or Drag & Drop File Here</h3>
-            <p id="fileSub">Supports .mcworld / .zip / level.dat · Bedrock Edition</p>
+            <h3 id="fileTitle">Click or Drag File / Folder Here</h3>
+            <p id="fileSub">Supports .mcworld / .zip / Folder / level.dat</p>
             <input type="file" id="fileInput" accept=".mcworld,.zip,.dat" style="display:none;">
         </div>
         <div style="text-align:center;">
@@ -174,7 +178,13 @@
 
     <!-- Info Overview (Hidden until loaded) -->
     <div class="card" id="infoCard" style="display:none;">
-        <h3 style="font-size:0.9rem;" id="infoCardTitle">🗺️ World Overview</h3>
+        <div class="world-header-box">
+            <img id="worldIcon" class="world-icon-img" alt="World Icon">
+            <div>
+                <h3 style="font-size:0.95rem;" id="infoCardTitle">🗺️ World Overview</h3>
+                <span id="info_nbt_status" class="badge" style="margin-top:4px; display:inline-block;">-</span>
+            </div>
+        </div>
         <div class="info-grid">
             <div class="info-item"><label id="k_name">World Name</label><span id="info_name">-</span></div>
             <div class="info-item"><label id="k_mode">Game Mode</label><span id="info_mode">-</span></div>
@@ -182,8 +192,7 @@
             <div class="info-item"><label id="k_seed">World Seed</label><span id="info_seed">-</span></div>
             <div class="info-item"><label id="k_time">In-Game Time</label><span id="info_time">-</span></div>
             <div class="info-item"><label id="k_size">File Size</label><span id="info_size">-</span></div>
-            <div class="info-item"><label id="k_format">File Format</label><span id="info_format">-</span></div>
-            <div class="info-item"><label id="k_nbt">NBT Status</label><span id="info_nbt_status" class="badge">-</span></div>
+            <div class="info-item" style="grid-column: span 2;"><label id="k_format">File Format</label><span id="info_format">-</span></div>
         </div>
     </div>
 
@@ -340,8 +349,8 @@ const translations = {
         opt_sys: "System", opt_dark: "Dark", opt_light: "Light",
         appTitle: "Achievement Fixer",
         appDesc: "NBT Parser · Auto Backup · Minimalist Interface",
-        dropTitle: "Click or Drag & Drop File Here",
-        dropSub: "Supports .mcworld / .zip / level.dat · Bedrock Edition",
+        dropTitle: "Click or Drag File / Folder Here",
+        dropSub: "Supports .mcworld / .zip / Folder / level.dat",
         demoBtn: "🧪 No world file? Click to load demo preview",
         f1_title: "100% Local", f1_desc: "No server uploads<br>Processed in browser",
         f2_title: "Auto Backup", f2_desc: "Auto-creates<br>.dat.bak file",
@@ -365,8 +374,6 @@ const translations = {
         nbtNormal: "Parsed OK", nbtError: "Parse Error",
         summaryWarn: "⚠️ Locks or non-survival mode detected! Click fix to restore survival mode & achievements.",
         summaryOk: "✅ World status is clean! Achievements are active.",
-        backupDatText: "💾 Auto backups original level.dat as level.dat.bak",
-        backupZipText: "💾 Auto backups level.dat to level.dat.bak in package",
         
         modes: { 0: 'Survival', 1: 'Creative', 2: 'Adventure', 3: 'Spectator' },
         diffs: { 0: 'Peaceful', 1: 'Easy', 2: 'Normal', 3: 'Hard' },
@@ -378,8 +385,8 @@ const translations = {
         opt_sys: "系统", opt_dark: "深色", opt_light: "浅色",
         appTitle: "成就资格修复器",
         appDesc: "精准NBT解析 · 自动备份 · 极简黑白界面",
-        dropTitle: "点击 或 拖拽文件到此处",
-        dropSub: "支持 .mcworld / .zip / level.dat · 基岩版专用",
+        dropTitle: "点击或将 文件 / 文件夹 拖拽至此",
+        dropSub: "支持 .mcworld / .zip / 文件夹 / level.dat",
         demoBtn: "🧪 没有存档？点击一键加载示例数据预览",
         f1_title: "纯本地解析", f1_desc: "文件零上传<br>浏览器本地处理",
         f2_title: "自动备份", f2_desc: "自动生成原包<br>.dat.bak 备份",
@@ -403,8 +410,6 @@ const translations = {
         nbtNormal: "解析正常", nbtError: "解析异常",
         summaryWarn: "⚠️ 检测到限制标记或非生存模式！点击修复将自动重置并恢复生存模式。",
         summaryOk: "✅ 存档状态正常，成就资格完好！",
-        backupDatText: "💾 修复时自动备份原始 level.dat 为 level.dat.bak",
-        backupZipText: "💾 修复时自动备份原 level.dat 到压缩包内 level.dat.bak",
         
         modes: { 0: '生存 (Survival)', 1: '创造 (Creative)', 2: '冒险 (Adventure)', 3: '旁观 (Spectator)' },
         diffs: { 0: '和平 (Peaceful)', 1: '简单 (Easy)', 2: '普通 (Normal)', 3: '困难 (Hard)' },
@@ -607,17 +612,101 @@ function loadDemoData() {
     const fileInput = document.getElementById('fileInput');
 
     dropzone.addEventListener('click', () => fileInput.click());
+
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
         dropzone.addEventListener(ev, e => {
             e.preventDefault(); e.stopPropagation();
             if (ev === 'dragenter' || ev === 'dragover') dropzone.classList.add('dragover');
             else dropzone.classList.remove('dragover');
-            if (ev === 'drop' && e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                fileInput.dispatchEvent(new Event('change'));
-            }
         });
     });
+
+    dropzone.addEventListener('drop', async e => {
+        const items = e.dataTransfer.items;
+        if (items && items.length > 0) {
+            const item = items[0].webkitGetAsEntry ? items[0].webkitGetAsEntry() : null;
+            if (item && item.isDirectory) {
+                log('>> Processing folder...');
+                await handleFolderDrop(item);
+                return;
+            }
+        }
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // 处理文件夹拖入 (Folder Drop)
+    async function handleFolderDrop(directoryEntry) {
+        window.isDemoMode = false;
+        zipInstance = new JSZip();
+        
+        log(`>> Reading folder: ${directoryEntry.name}`);
+        const filesMap = {};
+
+        async function readEntriesRecursively(entry, path = "") {
+            if (entry.isFile) {
+                const file = await new Promise(resolve => entry.file(resolve));
+                filesMap[path + entry.name] = file;
+            } else if (entry.isDirectory) {
+                const dirReader = entry.createReader();
+                const entries = await new Promise(resolve => dirReader.readEntries(resolve));
+                for (const subEntry of entries) {
+                    await readEntriesRecursively(subEntry, path + entry.name + "/");
+                }
+            }
+        }
+
+        await readEntriesRecursively(directoryEntry);
+
+        targetLevelDatPath = null;
+        let iconFile = null;
+        let totalSize = 0;
+
+        for (const relativePath in filesMap) {
+            const file = filesMap[relativePath];
+            totalSize += file.size;
+            zipInstance.file(relativePath, file);
+
+            if (relativePath.toLowerCase().endsWith('level.dat')) {
+                targetLevelDatPath = relativePath;
+            }
+            if (relativePath.toLowerCase().endsWith('world_icon.jpeg') || relativePath.toLowerCase().endsWith('world_icon.png')) {
+                iconFile = file;
+            }
+        }
+
+        if (!targetLevelDatPath) return alert('level.dat not found in folder!');
+
+        const lastSlashIdx = targetLevelDatPath.lastIndexOf('/');
+        if (lastSlashIdx !== -1) {
+            window.zipRootPrefix = targetLevelDatPath.substring(0, lastSlashIdx + 1);
+        } else {
+            window.zipRootPrefix = "";
+        }
+
+        window.selectedFileObj = { name: directoryEntry.name + '.mcworld', size: totalSize };
+        isSingleDat = false;
+
+        document.getElementById('introGuides').style.display = 'none';
+        document.getElementById('loadDemoBtn').style.display = 'none';
+        document.getElementById('fileTitle').textContent = directoryEntry.name;
+        document.getElementById('fileSub').textContent = formatBytes(totalSize) + ' (Folder)';
+
+        const datFile = filesMap[targetLevelDatPath];
+        const arrayBuf = await datFile.arrayBuffer();
+        rawLevelDat = new Uint8Array(arrayBuf);
+        originalBackup = new Uint8Array(rawLevelDat);
+
+        if (iconFile) {
+            const reader = new FileReader();
+            reader.onload = e => renderIcon(e.target.result);
+            reader.readAsDataURL(iconFile);
+        }
+
+        parseNBT(rawLevelDat);
+    }
 
     function log(msg) {
         const logDiv = document.getElementById('log');
@@ -657,19 +746,28 @@ function loadDemoData() {
                 targetLevelDatPath = null;
                 window.zipRootPrefix = "";
 
-                // 寻找到 level.dat 路径
+                let iconEntry = null;
+
                 zipContent.forEach((path, entry) => {
                     if (!entry.dir && path.toLowerCase().endsWith('level.dat')) {
                         targetLevelDatPath = path;
                     }
+                    if (!entry.dir && (path.toLowerCase().endsWith('world_icon.jpeg') || path.toLowerCase().endsWith('world_icon.png'))) {
+                        iconEntry = entry;
+                    }
                 });
 
                 if (!targetLevelDatPath) return alert('level.dat not found! Please check your file.');
-                
-                // 计算顶层目录路径前缀（如 "MyWorld/level.dat" 里的 "MyWorld/"）
+
                 const lastSlashIdx = targetLevelDatPath.lastIndexOf('/');
                 if (lastSlashIdx !== -1) {
                     window.zipRootPrefix = targetLevelDatPath.substring(0, lastSlashIdx + 1);
+                }
+
+                if (iconEntry) {
+                    const iconData = await iconEntry.async('base64');
+                    const ext = iconEntry.name.endsWith('.png') ? 'png' : 'jpeg';
+                    renderIcon(`data:image/${ext};base64,${iconData}`);
                 }
 
                 const levelDatEntry = zipContent.file(targetLevelDatPath);
@@ -686,6 +784,12 @@ function loadDemoData() {
             document.getElementById('info_nbt_status').className = 'badge badge-bad';
         }
     });
+
+    function renderIcon(src) {
+        const img = document.getElementById('worldIcon');
+        img.src = src;
+        img.style.display = 'block';
+    }
 
     function parseNBT(buf) {
         window.parsedNBT_data = {};
@@ -956,7 +1060,6 @@ function loadDemoData() {
         const newZip = new JSZip();
         const prefix = window.zipRootPrefix || "";
 
-        // 收集并重构 ZIP，将可能存在的父级目录全部剥离，直铺到根路径下
         const entries = [];
         zipInstance.forEach((relativePath, entry) => {
             if (entry.dir) return;
@@ -1030,6 +1133,9 @@ function loadDemoData() {
         document.getElementById('fileTitle').textContent = t.dropTitle;
         document.getElementById('fileSub').textContent = t.dropSub;
 
+        document.getElementById('worldIcon').style.display = 'none';
+        document.getElementById('worldIcon').src = '';
+
         document.getElementById('introGuides').style.display = 'grid';
         document.getElementById('loadDemoBtn').style.display = 'inline-block';
 
@@ -1042,7 +1148,6 @@ function loadDemoData() {
         logDiv.style.display = 'none';
     });
 
-    // 自动检测语言并初始化
     const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
     const defaultLang = userLang.startsWith('zh') ? 'zh' : 'en';
     setLanguage(defaultLang);
