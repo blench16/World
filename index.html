@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Achievement Fixer</title>
-    <!-- 引入外部 JSZip 库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <!-- 引入独立 CSS 样式表 -->
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -86,11 +84,7 @@
                 <span id="pathTitle">📖 如何导出存档文件？(.mcworld)</span>
                 <span id="pathGuideArrow">▼</span>
             </div>
-            <div class="accordion-content" id="pathGuide">
-                <b>📱 iOS (iPhone/iPad):</b> 打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。<br>
-                <b>🤖 Android:</b> 进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。<br>
-                <b>💻 Windows:</b> 按 <code>Win + R</code> 粘贴路径：<code>%localappdata%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds</code>
-            </div>
+            <div class="accordion-content" id="pathGuide"></div>
         </div>
 
         <div class="card">
@@ -98,9 +92,7 @@
                 <span id="faqTitle">❓ 常见问题与注意细节</span>
                 <span id="faqGuideArrow">▼</span>
             </div>
-            <div class="accordion-content" id="faqGuide">
-                <!-- 由 JS 动态填充多语言丰富版 6 条内容 -->
-            </div>
+            <div class="accordion-content" id="faqGuide"></div>
         </div>
 
         <!-- 存档概览卡片 -->
@@ -225,7 +217,6 @@
         </div>
     </div>
 
-    <!-- 引入独立 JavaScript 脚本文件 -->
     <script src="script.js"></script>
 </body>
 </html>
