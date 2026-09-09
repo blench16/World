@@ -72,16 +72,16 @@ function showFeatureModal(type) {
     listEl.style.display = 'none';
     infoBox.style.display = 'block';
     confirmBtn.style.display = 'none';
-    cancelBtn.textContent = '我知道了';
+    cancelBtn.textContent = translations[currentLang].modalGotIt || '我知道了';
 
     const t = translations[currentLang].featureModals[type];
     document.getElementById('modalTitle').textContent = t.title;
     document.getElementById('modalDesc').textContent = t.subtitle;
 
     infoBox.innerHTML = `
-        <strong>💡 功能解读：</strong>
+        <strong>💡 ${translations[currentLang].modalFeatureTitle || '功能解读：'}</strong>
         <p style="margin-bottom:8px;">${t.desc}</p>
-        <strong>⚙️ 技术原理：</strong>
+        <strong>⚙️ ${translations[currentLang].modalTechTitle || '技术原理：'}</strong>
         <p>${t.tech}</p>
     `;
 
@@ -196,7 +196,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 });
 
 // ================================================================
-// 4. 多语言配置（包含画中画 Modal 内容与扩展后的 FAQ 6条）
+// 4. 多语言配置
 // ================================================================
 const translations = {
     en: {
@@ -204,7 +204,7 @@ const translations = {
         appDesc: 'Archive Detection and Repair Tool',
         dropTitle: 'Click or Drag File / Folder Here',
         dropSub: 'Supports .mcworld / .zip / Folder / level.dat',
-        demoBtn: '🧪 No world file? Click to load demo preview',
+        loadDemoBtn: '🧪 No world file? Click to load demo preview',
         f1_title: '100% Local',
         f1_desc: 'No server uploads<br>Processed in browser',
         f2_title: 'Auto Backup',
@@ -212,6 +212,9 @@ const translations = {
         f3_title: 'Safe Edit',
         f3_desc: 'Clears locks only<br>Preserves builds & items',
         btnConfirmText: 'Confirm Fix',
+        modalGotIt: 'Got it',
+        modalFeatureTitle: 'Feature Overview:',
+        modalTechTitle: 'Technical Principal:',
         featureModals: {
             f1: {
                 title: '🔒 100% Local Processing',
@@ -288,7 +291,7 @@ const translations = {
         appDesc: '存档检测与修复工具',
         dropTitle: '点击或将 文件 / 文件夹 拖拽至此',
         dropSub: '支持 .mcworld / .zip / 文件夹 / level.dat',
-        demoBtn: '🧪 没有存档？点击加载示例预览',
+        loadDemoBtn: '🧪 没有存档？点击加载示例预览',
         f1_title: '纯本地解析',
         f1_desc: '文件零上传<br>浏览器本地处理',
         f2_title: '自动备份',
@@ -296,6 +299,9 @@ const translations = {
         f3_title: '无损修改',
         f3_desc: '只清空限制标记<br>不影响建筑物品',
         btnConfirmText: '确认修复',
+        modalGotIt: '我知道了',
+        modalFeatureTitle: '功能解读：',
+        modalTechTitle: '技术原理：',
         featureModals: {
             f1: {
                 title: '🔒 纯本地解析',
@@ -446,9 +452,9 @@ const targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled
 let isCancelled = false;
 
 document.getElementById('cancelFixBtn').addEventListener('click', function() {
-    if (confirm('确定要取消当前修复操作吗？')) {
+    if (confirm(currentLang === 'zh' ? '确定要取消当前修复操作吗？' : 'Cancel current operation?')) {
         isCancelled = true;
-        showToast('已请求取消，正在清理...', 'warning');
+        showToast(currentLang === 'zh' ? '已请求取消，正在清理...' : 'Cancelling operation...', 'warning');
     }
 });
 
@@ -483,7 +489,6 @@ function traverseNBT(view, offset, isFixing = false, fixOptions = {}) {
             if (targetKeys.includes(name)) {
                 if (isFixing && fixOptions[name] && view.getInt8(offset) !== 0) {
                     view.setInt8(offset, 0);
-                    console.log(`   ✓ ${name} → 0`);
                 }
                 window.parsedNBT_data[name] = view.getInt8(offset);
             }
@@ -492,7 +497,6 @@ function traverseNBT(view, offset, isFixing = false, fixOptions = {}) {
             if (name === 'GameType') {
                 if (isFixing && fixOptions.GameType && view.getInt32(offset, true) !== 0) {
                     view.setInt32(offset, 0, true);
-                    console.log('   ✓ GameType → 0 (Restored to Survival)');
                 }
                 window.parsedNBT_data[name] = view.getInt32(offset, true);
             } else if (name === 'Difficulty') {
@@ -570,7 +574,7 @@ function analyzeAndRender() {
         const days = Math.floor(ticks / 24000);
         document.getElementById('info_time').textContent = t.timeFormat(minutes, days);
     } else {
-        document.getElementById('info_time').textContent = 'N/A';
+        document.getElementById('info_time').textContent = 'N me';
     }
     if (window.selectedFileObj) {
         document.getElementById('info_size').textContent = formatBytes(window.selectedFileObj.size);
@@ -616,22 +620,22 @@ function analyzeAndRender() {
 
     const creativeVal = parsed.hasBeenLoadedInCreative;
     optCreative.checked = (creativeVal === 1);
-    hintCreative.textContent = creativeVal !== undefined ? (creativeVal === 1 ? '⚠️ 需修复' : '✅ 正常') : '❓';
+    hintCreative.textContent = creativeVal !== undefined ? (creativeVal === 1 ? (currentLang === 'zh' ? '⚠️ 需修复' : '⚠️ Fix needed') : (currentLang === 'zh' ? '✅ 正常' : '✅ Clean')) : '❓';
     hintCreative.className = `status-hint ${creativeVal === 1 ? 'badge-bad' : 'badge-good'}`;
 
     const cheatsVal = parsed.cheatsEnabled;
     optCheats.checked = (cheatsVal === 1);
-    hintCheats.textContent = cheatsVal !== undefined ? (cheatsVal === 1 ? '⚠️ 需修复' : '✅ 正常') : '❓';
+    hintCheats.textContent = cheatsVal !== undefined ? (cheatsVal === 1 ? (currentLang === 'zh' ? '⚠️ 需修复' : '⚠️ Fix needed') : (currentLang === 'zh' ? '✅ 正常' : '✅ Clean')) : '❓';
     hintCheats.className = `status-hint ${cheatsVal === 1 ? 'badge-bad' : 'badge-good'}`;
 
     const commandsVal = parsed.commandsEnabled;
     optCommands.checked = (commandsVal === 1);
-    hintCommands.textContent = commandsVal !== undefined ? (commandsVal === 1 ? '⚠️ 需修复' : '✅ 正常') : '❓';
+    hintCommands.textContent = commandsVal !== undefined ? (commandsVal === 1 ? (currentLang === 'zh' ? '⚠️ 需修复' : '⚠️ Fix needed') : (currentLang === 'zh' ? '✅ 正常' : '✅ Clean')) : '❓';
     hintCommands.className = `status-hint ${commandsVal === 1 ? 'badge-bad' : 'badge-good'}`;
 
     const gameTypeVal = parsed.GameType;
     optGametype.checked = (gameTypeVal !== undefined && gameTypeVal !== 0);
-    hintGametype.textContent = gameTypeVal !== undefined ? (gameTypeVal !== 0 ? `⚠️ ${t.modes[gameTypeVal]}` : '✅ 生存') : '❓';
+    hintGametype.textContent = gameTypeVal !== undefined ? (gameTypeVal !== 0 ? `⚠️ ${t.modes[gameTypeVal]}` : (currentLang === 'zh' ? '✅ 生存' : '✅ Survival')) : '❓';
     hintGametype.className = `status-hint ${gameTypeVal !== 0 ? 'badge-bad' : 'badge-good'}`;
 
     const box = document.getElementById('summaryBox'), text = document.getElementById('summaryText');
@@ -820,14 +824,14 @@ fileInput.addEventListener('change', async e => {
 document.getElementById('loadDemoBtn').addEventListener('click', function() {
     const t = translations[currentLang];
     document.getElementById('introGuides').style.display = 'none';
-    document.getElementById('fileTitle').textContent = '示例测试存档.mcworld';
+    document.getElementById('fileTitle').textContent = currentLang === 'zh' ? '示例测试存档.mcworld' : 'Demo_World.mcworld';
     document.getElementById('fileSub').textContent = '50 KB (Demo Mode)';
     this.style.display = 'none';
     document.getElementById('compareBox').style.display = 'none';
     setProgress(0);
     window.isDemoMode = true;
     window.parsedNBT_data = {
-        LevelName: '我的生存世界 (示例)',
+        LevelName: currentLang === 'zh' ? '我的生存世界 (示例)' : 'My Survival World (Demo)',
         GameType: 1,
         Difficulty: 2,
         RandomSeed: '-7363735107005477438',
@@ -837,7 +841,7 @@ document.getElementById('loadDemoBtn').addEventListener('click', function() {
         commandsEnabled: 0
     };
     analyzeAndRender();
-    showToast('示例数据已加载', 'success');
+    showToast(currentLang === 'zh' ? '示例数据已加载' : 'Demo world loaded', 'success');
 });
 
 // 重置
@@ -867,7 +871,7 @@ document.getElementById('resetBtn').addEventListener('click', function() {
     setProgress(0);
     document.getElementById('log').textContent = '';
     document.getElementById('log').style.display = 'none';
-    showToast('已重置', 'success');
+    showToast(currentLang === 'zh' ? '已重置' : 'Reset complete', 'success');
 });
 
 // 修复按钮
@@ -882,7 +886,7 @@ document.getElementById('fixBtn').addEventListener('click', function() {
     };
     const hasSelection = Object.values(fixOptions).some(v => v);
     if (!hasSelection) {
-        showToast('请至少选择一项修复内容', 'warning');
+        showToast(currentLang === 'zh' ? '请至少选择一项修复内容' : 'Please select at least one item to fix', 'warning');
         return;
     }
     const confirmList = [];
@@ -896,7 +900,7 @@ document.getElementById('fixBtn').addEventListener('click', function() {
         confirmList.push(`GameType: ${t.modes[parsed.GameType]} → Survival`);
 
     if (confirmList.length === 0) {
-        showToast('当前无需修复', 'info');
+        showToast(currentLang === 'zh' ? '当前无需修复' : 'No fix required', 'info');
         return;
     }
     showConfirm(t.confirmTitle, t.confirmDesc, confirmList, () => {
@@ -945,7 +949,7 @@ async function executeFix(fixOptions) {
         traverseNBT(view, offset, true, fixOptions);
 
         if (isCancelled) {
-            showToast('修复已取消', 'warning');
+            showToast(currentLang === 'zh' ? '修复已取消' : 'Fix cancelled', 'warning');
             setProgress(0);
             return;
         }
@@ -960,7 +964,7 @@ async function executeFix(fixOptions) {
         traverseNBT(view, verifyOff, false);
 
         if (isCancelled) {
-            showToast('修复已取消', 'warning');
+            showToast(currentLang === 'zh' ? '修复已取消' : 'Fix cancelled', 'warning');
             setProgress(0);
             return;
         }
@@ -998,7 +1002,7 @@ async function executeFix(fixOptions) {
         });
         for (const item of entries) {
             if (isCancelled) {
-                showToast('修复已取消', 'warning');
+                showToast(currentLang === 'zh' ? '修复已取消' : 'Fix cancelled', 'warning');
                 setProgress(0);
                 return;
             }
@@ -1034,9 +1038,9 @@ async function executeFix(fixOptions) {
         setTimeout(() => setProgress(0), 2000);
     } catch (err) {
         if (err.message === 'Cancelled by user') {
-            showToast('修复已取消', 'warning');
+            showToast(currentLang === 'zh' ? '修复已取消' : 'Fix cancelled', 'warning');
         } else {
-            showToast('修复失败: ' + err.message, 'error');
+            showToast((currentLang === 'zh' ? '修复失败: ' : 'Fix failed: ') + err.message, 'error');
         }
         setProgress(0);
     }
@@ -1100,7 +1104,7 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
     if (confirm(translations[currentLang].clear_history_confirm || '确定要清空修改日志吗？')) {
         localStorage.removeItem('mcsr_fixer_history');
         renderHistory();
-        showToast('历史记录已清空', 'success');
+        showToast(currentLang === 'zh' ? '历史记录已清空' : 'History cleared', 'success');
     }
 });
 
