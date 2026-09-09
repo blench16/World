@@ -65,7 +65,6 @@
         .accordion { cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 600; }
         .accordion-content { display: none; margin-top: 10px; font-size: 0.75rem; color: var(--mono-text-dim); line-height: 1.5; border-top: 1px solid var(--mono-border); padding-top: 10px; }
 
-        /* World Banner & Icon Style */
         .world-header-box { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .world-icon-img { width: 56px; height: 56px; border-radius: 8px; border: 1px solid var(--mono-border-light); object-fit: cover; display: none; }
 
@@ -104,7 +103,6 @@
 <body>
 
 <div class="container">
-    <!-- Top Bar -->
     <div class="top-bar">
         <button class="btn-sm" id="bgBtn">Background</button>
         <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
@@ -121,13 +119,11 @@
         </div>
     </div>
 
-    <!-- Header -->
     <div class="header">
         <h1 id="appTitle">Achievement Fixer</h1>
         <p id="appDesc">NBT Parser · Auto Backup · Minimalist Interface</p>
     </div>
 
-    <!-- File Dropzone -->
     <div class="card">
         <div class="dropzone" id="dropzone">
             <h3 id="fileTitle">Click or Drag File / Folder Here</h3>
@@ -139,7 +135,6 @@
         </div>
     </div>
 
-    <!-- Intro Features -->
     <div class="features" id="introGuides">
         <div class="feature-item">
             <div class="icon">🔒</div>
@@ -158,7 +153,6 @@
         </div>
     </div>
 
-    <!-- Path Accordion -->
     <div class="card">
         <div class="accordion" onclick="toggleAccordion('pathGuide')">
             <span id="pathTitle">📖 How to export world files? (.mcworld)</span>
@@ -167,7 +161,6 @@
         <div class="accordion-content" id="pathGuide"></div>
     </div>
 
-    <!-- FAQ Accordion -->
     <div class="card">
         <div class="accordion" onclick="toggleAccordion('faqGuide')">
             <span id="faqTitle">❓ FAQ & Important Notes</span>
@@ -176,7 +169,6 @@
         <div class="accordion-content" id="faqGuide"></div>
     </div>
 
-    <!-- Info Overview (Hidden until loaded) -->
     <div class="card" id="infoCard" style="display:none;">
         <div class="world-header-box">
             <img id="worldIcon" class="world-icon-img" alt="World Icon">
@@ -196,7 +188,6 @@
         </div>
     </div>
 
-    <!-- Status Flags (Hidden until loaded) -->
     <div class="card" id="statusCard" style="display:none;">
         <h3 style="font-size:0.9rem; margin-bottom:8px;" id="statusCardTitle">🔒 Achievement Lock Status</h3>
         <div class="status-row">
@@ -216,13 +207,11 @@
         </div>
     </div>
 
-    <!-- Action Group -->
     <div class="btn-group" id="actionGroup" style="display:none;">
         <button class="btn-secondary" id="resetBtn">Reset</button>
         <button class="btn-primary" id="fixBtn">Fix & Export World</button>
     </div>
 
-    <!-- History Card -->
     <div class="card">
         <div class="history-header">
             <span style="font-size:0.85rem; font-weight:600;" id="historyTitle">📜 History Log</span>
@@ -235,13 +224,9 @@
         <div class="history-list" id="historyContainer"></div>
     </div>
 
-    <!-- Tip Footer Box -->
     <div class="tip-box" id="tipText"></div>
-
-    <!-- Console Log -->
     <div class="log-box" id="log"></div>
 
-    <!-- Footer -->
     <div class="footer">
         <p>Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener noreferrer">@KotegawazzZ</a></p>
         <p id="footerTag">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft</p>
@@ -249,7 +234,6 @@
 </div>
 
 <script>
-// ================= Helper: Format Bytes =================
 function formatBytes(bytes) {
     if (bytes === 0 || !bytes) return '0 B';
     const k = 1024;
@@ -258,7 +242,6 @@ function formatBytes(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// ================= Theme Switcher =================
 const themeSelect = document.getElementById('themeSelect');
 
 function applyTheme(theme) {
@@ -287,7 +270,6 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
     }
 });
 
-// ================= Background Customization =================
 const bgBtn = document.getElementById('bgBtn');
 const bgFileInput = document.getElementById('bgFileInput');
 
@@ -342,7 +324,6 @@ function clearBackground() {
     if (savedImg) setBackground(savedImg);
 })();
 
-// ================= i18n Translations =================
 const translations = {
     en: {
         bgBtn: "Background",
@@ -569,7 +550,7 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
     let csv = '\uFEFF';
     csv += 'World Name,File Name,Time,Status,Creative Flag,Cheats Flag\n';
     history.forEach(h => {
-        csv += `"${(h.worldName || '').replace(/"/g, '""')}","${h.fileName}","${h.timestamp}","${h.status}",${h.creative},${h.cheats}\n`;
+        csv += `"${(h.worldName || '').replace(/"/g, '""')}","${(h.fileName || '').replace(/"/g, '""')}","${h.timestamp}","${h.status}",${h.creative},${h.cheats}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     downloadFile(blob, `mcsr_fixer_history_${Date.now()}.csv`);
@@ -637,7 +618,6 @@ function loadDemoData() {
         }
     });
 
-    // 处理文件夹拖入 (Folder Drop)
     async function handleFolderDrop(directoryEntry) {
         window.isDemoMode = false;
         zipInstance = new JSZip();
@@ -791,51 +771,7 @@ function loadDemoData() {
         img.style.display = 'block';
     }
 
-    function parseNBT(buf) {
-        window.parsedNBT_data = {};
-        const parsed = window.parsedNBT_data;
-        const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
-        
-        let offset = 0;
-        if (buf.length > 8 && view.getUint8(8) === TAG_COMPOUND) offset = 8;
-        if (view.getUint8(offset) !== TAG_COMPOUND) throw new Error('Invalid level.dat NBT structure');
-        offset++;
-
-        const rootNameLen = view.getUint16(offset, true); offset += 2 + rootNameLen;
-
-        while (offset < buf.length) {
-            const tagType = view.getUint8(offset++);
-            if (tagType === TAG_END) break;
-            
-            const nameLen = view.getUint16(offset, true); offset += 2;
-            const name = new TextDecoder().decode(buf.subarray(offset, offset + nameLen));
-            offset += nameLen;
-
-            if (tagType === TAG_BYTE) {
-                parsed[name] = view.getInt8(offset++);
-                if (targetKeys.includes(name)) log(`   Found ${name} = ${parsed[name]}`);
-            } else if (tagType === TAG_STRING && name === 'LevelName') {
-                const sLen = view.getUint16(offset, true);
-                parsed[name] = new TextDecoder().decode(buf.subarray(offset + 2, offset + 2 + sLen));
-                offset += 2 + sLen;
-            } else if (tagType === TAG_INT && name === 'GameType') {
-                parsed[name] = view.getInt32(offset, true); offset += 4;
-            } else if (tagType === TAG_INT && name === 'Difficulty') {
-                parsed[name] = view.getInt32(offset, true); offset += 4;
-            } else if (tagType === TAG_LONG && name === 'RandomSeed') {
-                parsed[name] = readInt64LE(view, offset).toString(); offset += 8;
-            } else if (tagType === TAG_LONG && name === 'Time') {
-                parsed[name] = readInt64LE(view, offset); offset += 8;
-            } else {
-                const skipped = skipTag(tagType, view, offset);
-                if (skipped === 0 && tagType !== TAG_END) break;
-                offset += skipped;
-            }
-        }
-        analyzeAndRender();
-    }
-
-    function skipTag(type, view, offset) {
+    function skipTagBody(type, view, offset) {
         if (offset >= view.byteLength) return 0;
         switch (type) {
             case TAG_BYTE: return 1;
@@ -848,32 +784,81 @@ function loadDemoData() {
             case TAG_STRING: return 2 + view.getUint16(offset, true);
             case TAG_INT_ARRAY: return 4 + view.getInt32(offset, true) * 4;
             case TAG_LONG_ARRAY: return 4 + view.getInt32(offset, true) * 8;
-            case TAG_LIST: {
-                const subType = view.getUint8(offset);
-                const listLen = view.getInt32(offset + 1, true);
-                let skipped = 5;
-                for (let i = 0; i < listLen; i++) {
-                    const step = skipTag(subType, view, offset + skipped);
-                    if (step === 0) break;
-                    skipped += step;
-                }
-                return skipped;
-            }
-            case TAG_COMPOUND: {
-                let skipped = 0;
-                while (offset + skipped < view.byteLength) {
-                    const subType = view.getUint8(offset + skipped++);
-                    if (subType === TAG_END) break;
-                    const nameLen = view.getUint16(offset + skipped, true);
-                    skipped += 2 + nameLen;
-                    const step = skipTag(subType, view, offset + skipped);
-                    skipped += step;
-                    if (step === 0 && subType !== TAG_END) break;
-                }
-                return skipped;
-            }
             default: return 0;
         }
+    }
+
+    function traverseNBT(view, offset, isFixing = false) {
+        while (offset < view.byteLength) {
+            const tagType = view.getUint8(offset++);
+            if (tagType === TAG_END) break;
+
+            const nameLen = view.getUint16(offset, true); offset += 2;
+            const name = new TextDecoder().decode(new Uint8Array(view.buffer, view.byteOffset + offset, nameLen));
+            offset += nameLen;
+
+            if (tagType === TAG_BYTE) {
+                if (targetKeys.includes(name)) {
+                    if (isFixing && view.getInt8(offset) !== 0) {
+                        view.setInt8(offset, 0);
+                        log(`   ✓ ${name} → 0`);
+                    }
+                    window.parsedNBT_data[name] = view.getInt8(offset);
+                }
+                offset += 1;
+            } else if (tagType === TAG_INT) {
+                if (name === 'GameType') {
+                    if (isFixing && view.getInt32(offset, true) !== 0) {
+                        view.setInt32(offset, 0, true);
+                        log('   ✓ GameType → 0 (Restored to Survival)');
+                    }
+                    window.parsedNBT_data[name] = view.getInt32(offset, true);
+                } else if (name === 'Difficulty') {
+                    window.parsedNBT_data[name] = view.getInt32(offset, true);
+                }
+                offset += 4;
+            } else if (tagType === TAG_STRING && name === 'LevelName') {
+                const sLen = view.getUint16(offset, true);
+                window.parsedNBT_data[name] = new TextDecoder().decode(new Uint8Array(view.buffer, view.byteOffset + offset + 2, sLen));
+                offset += 2 + sLen;
+            } else if (tagType === TAG_LONG && name === 'RandomSeed') {
+                window.parsedNBT_data[name] = readInt64LE(view, offset).toString();
+                offset += 8;
+            } else if (tagType === TAG_LONG && name === 'Time') {
+                window.parsedNBT_data[name] = readInt64LE(view, offset);
+                offset += 8;
+            } else if (tagType === TAG_COMPOUND) {
+                offset = traverseNBT(view, offset, isFixing);
+            } else if (tagType === TAG_LIST) {
+                const subType = view.getUint8(offset++);
+                const listLen = view.getInt32(offset, true); offset += 4;
+                for (let i = 0; i < listLen; i++) {
+                    if (subType === TAG_COMPOUND) {
+                        offset = traverseNBT(view, offset, isFixing);
+                    } else {
+                        offset += skipTagBody(subType, view, offset);
+                    }
+                }
+            } else {
+                offset += skipTagBody(tagType, view, offset);
+            }
+        }
+        return offset;
+    }
+
+    function parseNBT(buf) {
+        window.parsedNBT_data = {};
+        const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+        
+        let offset = 0;
+        if (buf.length > 8 && view.getUint8(8) === TAG_COMPOUND) offset = 8;
+        if (view.getUint8(offset) !== TAG_COMPOUND) throw new Error('Invalid level.dat NBT structure');
+        offset++;
+
+        const rootNameLen = view.getUint16(offset, true); offset += 2 + rootNameLen;
+
+        traverseNBT(view, offset, false);
+        analyzeAndRender();
     }
 
     window.analyzeAndRender = function() {
@@ -967,7 +952,7 @@ function loadDemoData() {
             return;
         }
 
-        log('>> Fixing NBT flags...');
+        log('>> Fixing NBT flags recursively...');
         const view = new DataView(rawLevelDat.buffer, rawLevelDat.byteOffset, rawLevelDat.byteLength);
         
         let offset = 0;
@@ -976,32 +961,7 @@ function loadDemoData() {
         
         const rootNameLen = view.getUint16(offset, true); offset += 2 + rootNameLen;
 
-        while (offset < rawLevelDat.length) {
-            const tagType = view.getUint8(offset++);
-            if (tagType === TAG_END) break;
-            
-            const nameLen = view.getUint16(offset, true); offset += 2;
-            const name = new TextDecoder().decode(rawLevelDat.subarray(offset, offset + nameLen));
-            offset += nameLen;
-
-            if (tagType === TAG_BYTE && targetKeys.includes(name)) {
-                if (view.getInt8(offset) !== 0) {
-                    view.setInt8(offset, 0);
-                    log(`   ✓ ${name} → 0`);
-                }
-                offset++;
-            } else if (tagType === TAG_INT && name === 'GameType') {
-                if (view.getInt32(offset, true) !== 0) {
-                    view.setInt32(offset, 0, true);
-                    log('   ✓ GameType → 0 (Restored to Survival)');
-                }
-                offset += 4;
-            } else {
-                const skipped = skipTag(tagType, view, offset);
-                if (skipped === 0 && tagType !== TAG_END) break;
-                offset += skipped;
-            }
-        }
+        traverseNBT(view, offset, true);
 
         log('>> Verifying integrity...');
         let verifyOff = 0;
@@ -1009,28 +969,14 @@ function loadDemoData() {
         verifyOff++;
         const vRootLen = view.getUint16(verifyOff, true); verifyOff += 2 + vRootLen;
 
-        let allOk = true;
-        while (verifyOff < rawLevelDat.length) {
-            const t = view.getUint8(verifyOff++); if (t === TAG_END) break;
-            const nl = view.getUint16(verifyOff, true); verifyOff += 2;
-            const n = new TextDecoder().decode(rawLevelDat.subarray(verifyOff, verifyOff + nl));
-            verifyOff += nl;
-            if (t === TAG_BYTE && targetKeys.includes(n) && view.getInt8(verifyOff) !== 0) {
-                allOk = false; log(`   ✗ Verification FAILED: ${n} != 0`);
-            }
-            if (t === TAG_BYTE && targetKeys.includes(n)) {
-                verifyOff++;
-            } else if (t === TAG_INT && n === 'GameType') {
-                verifyOff += 4;
-            } else {
-                const skipped = skipTag(t, view, verifyOff);
-                if (skipped === 0 && t !== TAG_END) break;
-                verifyOff += skipped;
-            }
-        }
+        window.parsedNBT_data = {};
+        traverseNBT(view, verifyOff, false);
+
+        const allOk = targetKeys.every(k => (window.parsedNBT_data[k] ?? 0) === 0) && (window.parsedNBT_data.GameType ?? 0) === 0;
 
         if (!allOk) {
             alert('Verification Failed! Please retry.');
+            log('   ✗ Verification FAILED');
             return;
         }
         log('   ✓ Verified OK');
@@ -1050,8 +996,6 @@ function loadDemoData() {
                 cheats: parsed.cheatsEnabled ?? 0
             });
 
-            targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
-            window.parsedNBT_data.GameType = 0;
             analyzeAndRender();
             return;
         }
@@ -1100,8 +1044,6 @@ function loadDemoData() {
             cheats: parsed.cheatsEnabled ?? 0
         });
 
-        targetKeys.forEach(k => window.parsedNBT_data[k] = 0);
-        window.parsedNBT_data.GameType = 0;
         analyzeAndRender();
     });
 
