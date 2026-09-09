@@ -878,7 +878,7 @@ function loadDemoData() {
                 offset++;
             } else if (tagType === TAG_INT && name === 'GameType') {
                 if (view.getInt32(offset, true) !== 0) {
-                    view.getInt32(offset, 0, true);
+                    view.setInt32(offset, 0, true); // 已经修正：使用 setInt32 将游戏模式写回生存模式 (0)
                     log('   ✓ GameType → 0 (Restored to Survival)');
                 }
                 offset += 4;
