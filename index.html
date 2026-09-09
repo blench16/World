@@ -92,6 +92,8 @@
         .tip-box { background: rgba(255,255,255,0.01); border-left: 3px solid var(--mono-text); padding: 10px 12px; font-size: 0.75rem; color: var(--mono-text-dim); border-radius: 0 8px 8px 0; }
         
         .footer { text-align: center; font-size: 0.7rem; color: var(--mono-text-dim); margin-top: 12px; line-height: 1.4; }
+        .footer a { color: var(--mono-text); text-decoration: underline; transition: opacity 0.2s; }
+        .footer a:hover { opacity: 0.8; }
         .log-box { font-family: monospace; font-size: 0.7rem; background: #000; color: #00ff66; padding: 10px; border-radius: 8px; max-height: 120px; overflow-y: auto; display: none; white-space: pre-wrap; }
     </style>
 </head>
@@ -232,7 +234,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        <p>Crafted by <strong>@KotegawazzZ</strong></p>
+        <p>Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener noreferrer">@KotegawazzZ</a></p>
         <p id="footerTag">Minecraft Bedrock NBT Tool · Pure Client-Side Process<br>Not affiliated with Mojang Studios or Microsoft</p>
     </div>
 </div>
@@ -1008,8 +1010,10 @@ function loadDemoData() {
         logDiv.style.display = 'none';
     });
 
-    // 默认设置为英文，也可以切换
-    setLanguage('en');
+    // 自动检测语言并初始化
+    const userLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    const defaultLang = userLang.startsWith('zh') ? 'zh' : 'en';
+    setLanguage(defaultLang);
 })();
 </script>
 </body>
