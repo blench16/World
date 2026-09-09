@@ -596,6 +596,7 @@ function loadDemoData() {
     let zipInstance = null, targetLevelDatPath = null, rawLevelDat = null;
     let originalBackup = null, isSingleDat = false;
     window.selectedFileObj = null;
+    window.zipRootPrefix = "";
     const targetKeys = ['hasBeenLoadedInCreative', 'cheatsEnabled', 'commandsEnabled'];
 
     const TAG_END = 0, TAG_BYTE = 1, TAG_SHORT = 2, TAG_INT = 3, TAG_LONG = 4;
@@ -643,6 +644,7 @@ function loadDemoData() {
                 isSingleDat = true;
                 zipInstance = null;
                 targetLevelDatPath = window.selectedFileObj.name;
+                window.zipRootPrefix = "";
                 const arrayBuffer = await window.selectedFileObj.arrayBuffer();
                 rawLevelDat = new Uint8Array(arrayBuffer);
                 originalBackup = new Uint8Array(rawLevelDat);
@@ -653,7 +655,9 @@ function loadDemoData() {
                 zipInstance = new JSZip();
                 const zipContent = await zipInstance.loadAsync(window.selectedFileObj);
                 targetLevelDatPath = null;
+                window.zipRootPrefix = "";
 
+                // 寻找到 level.dat 路径
                 zipContent.forEach((path, entry) => {
                     if (!entry.dir && path.toLowerCase().endsWith('level.dat')) {
                         targetLevelDatPath = path;
@@ -662,6 +666,12 @@ function loadDemoData() {
 
                 if (!targetLevelDatPath) return alert('level.dat not found! Please check your file.');
                 
+                // 计算顶层目录路径前缀（如 "MyWorld/level.dat" 里的 "MyWorld/"）
+                const lastSlashIdx = targetLevelDatPath.lastIndexOf('/');
+                if (lastSlashIdx !== -1) {
+                    window.zipRootPrefix = targetLevelDatPath.substring(0, lastSlashIdx + 1);
+                }
+
                 const levelDatEntry = zipContent.file(targetLevelDatPath);
                 if (!levelDatEntry) return alert('level.dat entry invalid!');
 
@@ -878,7 +888,7 @@ function loadDemoData() {
                 offset++;
             } else if (tagType === TAG_INT && name === 'GameType') {
                 if (view.getInt32(offset, true) !== 0) {
-                    view.setInt32(offset, 0, true); // 已经修正：使用 setInt32 将游戏模式写回生存模式 (0)
+                    view.setInt32(offset, 0, true);
                     log('   ✓ GameType → 0 (Restored to Survival)');
                 }
                 offset += 4;
@@ -942,11 +952,32 @@ function loadDemoData() {
             return;
         }
 
-        log('>> Packing archive with level.dat.bak ...');
-        zipInstance.file(targetLevelDatPath + '.bak', originalBackup);
-        zipInstance.file(targetLevelDatPath, rawLevelDat);
+        log('>> Rebuilding ZIP structure (Flattening root)...');
+        const newZip = new JSZip();
+        const prefix = window.zipRootPrefix || "";
 
-        const blob = await zipInstance.generateAsync({ 
+        // 收集并重构 ZIP，将可能存在的父级目录全部剥离，直铺到根路径下
+        const entries = [];
+        zipInstance.forEach((relativePath, entry) => {
+            if (entry.dir) return;
+            let cleanPath = relativePath;
+            if (prefix && relativePath.startsWith(prefix)) {
+                cleanPath = relativePath.substring(prefix.length);
+            }
+            entries.push({ originalPath: relativePath, cleanPath: cleanPath, entry: entry });
+        });
+
+        for (const item of entries) {
+            if (item.originalPath === targetLevelDatPath) {
+                newZip.file('level.dat', rawLevelDat);
+                newZip.file('level.dat.bak', originalBackup);
+            } else {
+                const content = await item.entry.async('uint8array');
+                newZip.file(item.cleanPath, content);
+            }
+        }
+
+        const blob = await newZip.generateAsync({ 
             type: 'blob', 
             mimeType: 'application/x-minecraft-world',
             compression: 'DEFLATE',
@@ -955,7 +986,7 @@ function loadDemoData() {
         
         const outName = 'Fixed_' + window.selectedFileObj.name.replace(/\.(zip|mcworld)$/i, '') + '.mcworld';
         downloadFile(blob, outName);
-        log('🎉 Success! Fixed .mcworld downloaded.');
+        log('🎉 Success! Fixed .mcworld downloaded with clean root structure.');
 
         saveHistoryItem({
             worldName: parsed.LevelName || 'Unknown',
@@ -992,6 +1023,7 @@ function loadDemoData() {
         originalBackup = null;
         isSingleDat = false;
         window.isDemoMode = false;
+        window.zipRootPrefix = "";
 
         fileInput.value = '';
         const t = translations[currentLang];
