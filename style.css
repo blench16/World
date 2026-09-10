@@ -176,7 +176,7 @@ body.has-custom-bg::before {
     color: var(--mono-text);
 }
 
-/* 横向特性条 */
+/* 横向特性条（增加可点击画中画交互） */
 .features-merged {
     display: flex;
     flex-wrap: nowrap;
@@ -334,6 +334,11 @@ body.has-custom-bg::before {
     background: var(--danger-bg);
     color: var(--danger-color);
     border: 1px solid rgba(239, 68, 68, 0.2);
+}
+.badge-warn {
+    background: var(--warning-bg);
+    color: var(--warning-color);
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 /* 卡片化修复选项 */
@@ -634,7 +639,7 @@ body.has-custom-bg::before {
     to { transform: translateY(0); opacity: 1; }
 }
 
-/* Modal 弹窗 */
+/* Modal 弹窗（用于修复确认与宣传特性解读） */
 .modal-mask {
     position: fixed;
     inset: 0;
