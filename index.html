@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Achievement Fixer</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>成就资格修复器</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
     <div id="app">
+        <!-- Toast 容器 -->
         <div class="toast-container" id="toastContainer"></div>
 
+        <!-- 确认 / 宣传画中画弹窗 -->
         <div class="modal-mask" id="confirmModal">
             <div class="modal">
                 <h3 id="modalTitle">确认修复？</h3>
@@ -24,6 +26,7 @@
             </div>
         </div>
 
+        <!-- 顶部设置栏 -->
         <div class="top-bar">
             <div class="right-group">
                 <select class="select-custom" id="langSelect">
@@ -38,11 +41,13 @@
             </div>
         </div>
 
+        <!-- 头部标题 -->
         <div class="header">
             <h1 id="appTitle">成就资格修复器</h1>
             <p id="appDesc">存档检测与修复工具</p>
         </div>
 
+        <!-- 拖拽上传区 -->
         <div class="card">
             <div class="dropzone" id="dropzone">
                 <h3 id="fileTitle">点击或将 文件 / 文件夹 拖拽至此</h3>
@@ -54,40 +59,49 @@
             </div>
         </div>
 
+        <!-- 横向特性说明（点击唤醒画中画弹窗） -->
         <div class="features-merged" id="introGuides">
-            <div class="feature-item-merged" data-feature="f1">
+            <div class="feature-item-merged" onclick="showFeatureModal('f1')">
                 <span class="icon">🔒</span>
                 <h4 id="f1_title">纯本地解析</h4>
                 <p id="f1_desc">文件零上传<br>浏览器本地处理</p>
             </div>
-            <div class="feature-item-merged" data-feature="f2">
+            <div class="feature-item-merged" onclick="showFeatureModal('f2')">
                 <span class="icon">💾</span>
                 <h4 id="f2_title">自动备份</h4>
                 <p id="f2_desc">自动生成原包<br>.dat.bak 备份</p>
             </div>
-            <div class="feature-item-merged" data-feature="f3">
+            <div class="feature-item-merged" onclick="showFeatureModal('f3')">
                 <span class="icon">🎯</span>
                 <h4 id="f3_title">无损修改</h4>
                 <p id="f3_desc">只清空限制标记<br>不影响建筑物品</p>
             </div>
         </div>
 
+        <!-- 使用指南折叠卡片 -->
         <div class="card">
-            <div class="accordion" data-accordion="pathGuide">
+            <div class="accordion" onclick="toggleAccordion('pathGuide')">
                 <span id="pathTitle">📖 如何导出存档文件？(.mcworld)</span>
                 <span id="pathGuideArrow">▼</span>
             </div>
-            <div class="accordion-content" id="pathGuide"></div>
+            <div class="accordion-content" id="pathGuide">
+                <b>📱 iOS (iPhone/iPad):</b> 打开“文件”App ➔ 我的 iPhone ➔ Minecraft ➔ games ➔ com.mojang ➔ minecraftWorlds，找到对应文件夹压缩并重命名为 <code>.mcworld</code>。<br>
+                <b>🤖 Android:</b> 进入目录 <code>Android/data/com.mojang.minecraftpe/files/games/com.mojang/minecraftWorlds</code> 打包压缩。<br>
+                <b>💻 Windows:</b> 按 <code>Win + R</code> 粘贴路径：<code>%localappdata%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\games\com.mojang\minecraftWorlds</code>
+            </div>
         </div>
 
         <div class="card">
-            <div class="accordion" data-accordion="faqGuide">
+            <div class="accordion" onclick="toggleAccordion('faqGuide')">
                 <span id="faqTitle">❓ 常见问题与注意细节</span>
                 <span id="faqGuideArrow">▼</span>
             </div>
-            <div class="accordion-content" id="faqGuide"></div>
+            <div class="accordion-content" id="faqGuide">
+                <!-- 由 JS 动态填充多语言丰富版 6 条内容 -->
+            </div>
         </div>
 
+        <!-- 存档概览卡片 -->
         <div class="card" id="infoCard" style="display:none;">
             <div class="world-header-box">
                 <img id="worldIcon" class="world-icon-img" alt="World Icon" />
@@ -107,9 +121,10 @@
             </div>
         </div>
 
+        <!-- 状态与修复选项卡片 -->
         <div class="card" id="statusCard" style="display:none;">
             <h3 style="font-size:0.9rem; font-weight: 600; margin-bottom:10px;" id="statusCardTitle">🔒 成就限制状态</h3>
-
+            
             <div class="status-grid">
                 <div class="status-card-item">
                     <span class="key">Creative Flag</span>
@@ -128,31 +143,31 @@
             <div class="fix-options" id="fixOptions">
                 <h4 id="fixOptionsTitle">🛠️ 修复选项（自动预检）</h4>
                 <div class="option-grid">
-                    <div class="option-row" data-target="opt_creative">
+                    <div class="option-row" onclick="document.getElementById('opt_creative').click();">
                         <div class="option-left">
-                            <input type="checkbox" id="opt_creative" />
-                            <label id="label_creative" for="opt_creative">清除创造模式记录</label>
+                            <input type="checkbox" id="opt_creative" onclick="event.stopPropagation();" />
+                            <label id="label_creative">清除创造模式记录</label>
                         </div>
                         <span class="status-hint" id="hint_creative">-</span>
                     </div>
-                    <div class="option-row" data-target="opt_cheats">
+                    <div class="option-row" onclick="document.getElementById('opt_cheats').click();">
                         <div class="option-left">
-                            <input type="checkbox" id="opt_cheats" />
-                            <label id="label_cheats" for="opt_cheats">清除作弊开启标记</label>
+                            <input type="checkbox" id="opt_cheats" onclick="event.stopPropagation();" />
+                            <label id="label_cheats">清除作弊开启标记</label>
                         </div>
                         <span class="status-hint" id="hint_cheats">-</span>
                     </div>
-                    <div class="option-row" data-target="opt_commands">
+                    <div class="option-row" onclick="document.getElementById('opt_commands').click();">
                         <div class="option-left">
-                            <input type="checkbox" id="opt_commands" />
-                            <label id="label_commands" for="opt_commands">清除命令启用标记</label>
+                            <input type="checkbox" id="opt_commands" onclick="event.stopPropagation();" />
+                            <label id="label_commands">清除命令启用标记</label>
                         </div>
                         <span class="status-hint" id="hint_commands">-</span>
                     </div>
-                    <div class="option-row" data-target="opt_gametype">
+                    <div class="option-row" onclick="document.getElementById('opt_gametype').click();">
                         <div class="option-left">
-                            <input type="checkbox" id="opt_gametype" />
-                            <label id="label_gametype" for="opt_gametype">强制改回生存模式</label>
+                            <input type="checkbox" id="opt_gametype" onclick="event.stopPropagation();" />
+                            <label id="label_gametype">强制改回生存模式</label>
                         </div>
                         <span class="status-hint" id="hint_gametype">-</span>
                     </div>
@@ -177,11 +192,13 @@
             </div>
         </div>
 
+        <!-- 底部操作按钮 -->
         <div class="btn-group" id="actionGroup" style="display:none; margin-bottom: 16px;">
             <button class="btn-secondary" id="resetBtn">重置</button>
             <button class="btn-primary" id="fixBtn">一键修复并导出</button>
         </div>
 
+        <!-- 历史记录列表 -->
         <div class="card">
             <div class="history-header">
                 <span style="font-size:0.85rem; font-weight:600;" id="historyTitle">📜 修改历史日志</span>
@@ -194,15 +211,18 @@
             <div class="history-list" id="historyContainer"></div>
         </div>
 
-        <div class="tip-box" id="tipText"></div>
+        <div class="tip-box" id="tipText">
+            <strong style="color:var(--mono-text);">温馨提示：</strong>修复后再次进入游戏时，请勿重新勾选“开启作弊”或切入创造模式，否则系统将再次锁定成就。
+        </div>
+
         <div class="log-box" id="log"></div>
 
         <div class="footer">
             <p>Crafted by <a href="https://x.com/kotegawazzz?s=11" target="_blank" rel="noopener noreferrer">@KotegawazzZ</a></p>
-            <p id="footerTag"></p>
+            <p id="footerTag">Minecraft Bedrock NBT Tool · 纯前端本地处理<br>与 Mojang Studios 或 Microsoft 无关</p>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
